@@ -17,18 +17,28 @@ plugins {
     id "idea"
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
+
 def grpcVersion = "1.32.2"
 def log4jVersion = "2.12.1"
 repositories {
     // Use JCenter for resolving dependencies.
     jcenter()
-    mavenLocal()
+    mavenLocal {
+        content {
+            includeGroup "pipeline.core"
+        }
+    }
     mavenCentral()
 }
 
 dependencies {
     // PipelineCore
-    implementation "pipeline.core:Pipeline-Core:0.0.1-SNAPSHOT"
+    implementation "pipeline.core:Pipeline-Core:0.0.2-SNAPSHOT"
 
     // This dependency is used by the application.
     implementation 'com.google.guava:guava:29.0-jre'

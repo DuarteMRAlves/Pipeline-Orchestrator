@@ -11,9 +11,9 @@ import io.grpc.MethodDescriptor;
 import io.grpc.StatusRuntimeException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import pipeline.core.nodes.services.invocation.DynamicMessages;
-import pipeline.core.nodes.services.invocation.MethodDescriptors;
-import pipeline.core.nodes.services.invocation.UnaryServiceMethodInvoker;
+import pipeline.core.invocation.DynamicMessages;
+import pipeline.core.invocation.MethodDescriptors;
+import pipeline.core.invocation.UnaryServiceMethodInvoker;
 import pipeline.orchestrator.architecture.LinkInformation;
 import pipeline.orchestrator.architecture.StageInformation;
 import pipeline.orchestrator.execution.inputs.StageInputStream;
@@ -31,11 +31,10 @@ public class PipelineStage implements Runnable {
     private FullMethodDescription methodDescription;
 
     private final Channel channel;
-    private MethodDescriptor.Marshaller<DynamicMessage> inputMarshaller;
     private UnaryServiceMethodInvoker<DynamicMessage, DynamicMessage> invoker;
 
-    private Multimap<String, Link> inputs = HashMultimap.create();
-    private Multimap<String, Link> outputs = HashMultimap.create();
+    private final Multimap<String, Link> inputs = HashMultimap.create();
+    private final Multimap<String, Link> outputs = HashMultimap.create();
 
     public PipelineStage(StageInformation stageInformation) {
         String host = stageInformation.getServiceHost();
@@ -61,7 +60,6 @@ public class PipelineStage implements Runnable {
             MethodDescriptor<DynamicMessage, DynamicMessage> methodDescriptor =
                     buildGrpcMethodDescriptor();
 
-            inputMarshaller = methodDescriptor.getRequestMarshaller();
             invoker = buildInvoker(methodDescriptor);
             logger.info(
                     "Connection to processing service at {}:{} with method {}",

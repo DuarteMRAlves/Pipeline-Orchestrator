@@ -1,6 +1,5 @@
 package pipeline.orchestrator.execution.outputs;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.protobuf.Descriptors;

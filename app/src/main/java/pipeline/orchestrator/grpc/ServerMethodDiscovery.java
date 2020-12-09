@@ -11,10 +11,10 @@ import io.grpc.Channel;
 import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
 import pipeline.core.common.protobuf.Descriptors;
 import pipeline.core.common.utils.Conditions;
-import pipeline.core.nodes.services.discovery.ServerInfoProvider;
-import pipeline.core.nodes.services.discovery.UnableToListServicesException;
-import pipeline.core.nodes.services.discovery.UnableToLookupService;
-import pipeline.core.nodes.services.invocation.Naming;
+import pipeline.core.discovery.ServerInfoProvider;
+import pipeline.core.discovery.UnableToListServicesException;
+import pipeline.core.discovery.UnableToLookupService;
+import pipeline.core.invocation.Naming;
 
 import java.util.List;
 import java.util.function.Supplier;
