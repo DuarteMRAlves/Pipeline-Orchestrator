@@ -3,7 +3,7 @@ package pipeline.orchestrator;
 import com.google.common.graph.ValueGraph;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import pipeline.orchestrator.architecture.ArchitectureParser;
+import pipeline.orchestrator.architecture.parsing.ArchitectureParser;
 import pipeline.orchestrator.architecture.LinkInformation;
 import pipeline.orchestrator.architecture.StageInformation;
 import pipeline.orchestrator.configuration.Configuration;
@@ -27,9 +27,8 @@ public class App {
         Configuration configuration = optionalConfiguration.get();
         ValueGraph<StageInformation, LinkInformation> architecture = null;
         try {
-            architecture = ArchitectureParser.parse(
-                    configuration.getStagesInfoFile(),
-                    configuration.getStagesLinksFile());
+            architecture = ArchitectureParser.parseYaml(
+                    configuration.getConfigFile());
         } catch (IOException exception) {
             LOGGER.error("Unable to parse pipeline architecture", exception);
             System.exit(1);

@@ -1,0 +1,38 @@
+stages:
+  - name: "Stage 1"
+    host: Host1
+    port: 1
+    method:
+      name: "Method 1"
+      type: UNARY
+  - name: "Stage 2"
+    host: Host2
+    port: 2
+    method:
+      name: "Method 2"
+      type: CLIENT_STREAMING
+  - name: "Stage 3"
+    host: Host3
+    port: 3
+    method:
+      type: UNARY
+  - name: "Stage 4"
+    host: Host4
+    port: 4
+    method:
+      type: SERVER_STREAMING
+links:
+  - source:
+      stage: "Stage 1"
+    target:
+      stage: "Stage 2"
+  - source:
+      stage: "Stage 2"
+      field: "Field 2"
+    target:
+      stage: "Stage 3"
+  - source:
+      stage: "Stage 3"
+    target:
+      stage: "Stage 4"
+      field: "Field 4"

@@ -24,6 +24,7 @@ java {
 }
 
 def grpcVersion = "1.32.2"
+def jacksonVersion = "2.12.0"
 def log4jVersion = "2.12.1"
 repositories {
     // Use JCenter for resolving dependencies.
@@ -41,7 +42,7 @@ dependencies {
     implementation "pipeline.core:Pipeline-Core:0.0.2-SNAPSHOT"
 
     // This dependency is used by the application.
-    implementation 'com.google.guava:guava:29.0-jre'
+    implementation 'com.google.guava:guava:30.0-jre'
 
     // Grpc
     implementation "io.grpc:grpc-netty:${grpcVersion}"
@@ -51,11 +52,17 @@ dependencies {
     implementation "io.grpc:grpc-services:${grpcVersion}"
     implementation "com.google.api.grpc:proto-google-common-protos:1.16.0"
 
+    // Reflection Utils
+    implementation group: "org.reflections", name: "reflections", version : "0.9.12"
+
     if (JavaVersion.current().isJava9Compatible()) {
         // Workaround for @javax.annotation.Generated
         // see: https://github.com/grpc/grpc-java/issues/3633
         implementation "javax.annotation:javax.annotation-api:1.3.1"
     }
+
+    // For parsing configuration
+    implementation group: "com.fasterxml.jackson.dataformat", name: "jackson-dataformat-yaml", version: "${jacksonVersion}"
 
     // For logging
     implementation group: "org.apache.logging.log4j", name: "log4j-api", version: "${log4jVersion}"

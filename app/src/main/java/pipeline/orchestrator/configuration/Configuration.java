@@ -2,22 +2,16 @@ package pipeline.orchestrator.configuration;
 
 public class Configuration {
 
-    private String stagesInfoFile;
-    private String stagesLinksFile;
+    private String configFile;
 
-    public String getStagesInfoFile() {
-        return stagesInfoFile;
-    }
-
-    public String getStagesLinksFile() {
-        return stagesLinksFile;
+    public String getConfigFile() {
+        return configFile;
     }
 
     @Override
     public String toString() {
         return "AppConfiguration{" +
-                "stagesInfoFile='" + stagesInfoFile + '\'' +
-                ", stagesLinksFile='" + stagesLinksFile + '\'' +
+                "configFile='" + configFile + '\'' +
                 '}';
     }
 
@@ -31,13 +25,8 @@ public class Configuration {
 
         private Builder() {}
 
-        public Builder setStagesInfoFile(String stagesInfoFile) {
-            current.stagesInfoFile = stagesInfoFile;
-            return this;
-        }
-
-        public Builder setStagesLinksFile(String stagesLinksFile) {
-            current.stagesLinksFile = stagesLinksFile;
+        public Builder setConfigFile(String stagesInfoFile) {
+            current.configFile = stagesInfoFile;
             return this;
         }
 
@@ -52,8 +41,7 @@ public class Configuration {
 
         private Configuration copy(Configuration original) {
             Configuration copy = new Configuration();
-            copy.stagesInfoFile = original.stagesInfoFile;
-            copy.stagesLinksFile = original.stagesLinksFile;
+            copy.configFile = original.configFile;
             return copy;
         }
     }

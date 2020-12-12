@@ -22,6 +22,8 @@ import pipeline.orchestrator.grpc.FailedToExecuteRequestException;
 import pipeline.orchestrator.grpc.FullMethodDescription;
 import pipeline.orchestrator.grpc.ServerMethodDiscovery;
 
+import java.util.Optional;
+
 public class PipelineStage implements Runnable {
 
     private final Logger logger;
@@ -37,23 +39,18 @@ public class PipelineStage implements Runnable {
     private final Multimap<String, Link> outputs = HashMultimap.create();
 
     public PipelineStage(StageInformation stageInformation) {
+        String stageName = stageInformation.getName();
         String host = stageInformation.getServiceHost();
         int port = stageInformation.getServicePort();
-        String name = stageInformation.getMethodName();
+        Optional<String> methodName = stageInformation.getMethodName();
 
-        if (name != null) {
-            logger = LogManager.getLogger(
-                    String.format("%s - %s:%d:%s", PipelineStage.class.getName(), host, port, name));
-        }
-        else {
-            logger = LogManager.getLogger(
-                    String.format("%s - %s:%d", PipelineStage.class.getName(), host, port));
-        }
+        logger = LogManager.getLogger(
+                String.format("%s - %s", PipelineStage.class.getName(), stageName));
 
         channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
         try {
-            if (name != null)
-                methodDescription = ServerMethodDiscovery.discoverSingleMethod(channel, name);
+            if (methodName.isPresent())
+                methodDescription = ServerMethodDiscovery.discoverSingleMethod(channel, methodName.get());
             else
                 methodDescription = ServerMethodDiscovery.discoverSingleMethod(channel);
 
@@ -117,8 +114,8 @@ public class PipelineStage implements Runnable {
 
         Preconditions.checkState(!source.running && !target.running);
 
-        String sourceFieldName = linkInformation.getSourceFieldName();
-        String targetFieldName = linkInformation.getTargetFieldName();
+        String sourceFieldName = linkInformation.getSourceFieldName().orElse("");
+        String targetFieldName = linkInformation.getTargetFieldName().orElse("");
         Link link = new Link(sourceFieldName, targetFieldName);
         source.outputs.put(sourceFieldName, link);
         target.inputs.put(targetFieldName, link);

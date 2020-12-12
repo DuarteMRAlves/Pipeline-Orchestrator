@@ -13,24 +13,18 @@ public abstract class AbstractConfigurationParser {
 
     public final Optional<Configuration> buildAppConfiguration() {
 
-        Optional<String> stagesInfoFile = getStagesInfoFile();
-        Optional<String> linksInfoFile = getLinksInfoFile();
+        Optional<String> configFile = getConfigFile();
 
         // Should not init from environment
-        if (stagesInfoFile.isEmpty() && linksInfoFile.isEmpty()) {
+        if (configFile.isEmpty()) {
             return Optional.empty();
         }
-        // Check if all params are set
-        Preconditions.checkState(stagesInfoFile.isPresent() && linksInfoFile.isPresent());
 
         Configuration.Builder builder = Configuration.newBuilder()
-                .setStagesInfoFile(stagesInfoFile.get())
-                .setStagesLinksFile(linksInfoFile.get());
+                .setConfigFile(configFile.get());
 
         return Optional.of(builder.build());
     }
 
-    protected abstract Optional<String> getStagesInfoFile();
-
-    protected abstract Optional<String> getLinksInfoFile();
+    protected abstract Optional<String> getConfigFile();
 }
