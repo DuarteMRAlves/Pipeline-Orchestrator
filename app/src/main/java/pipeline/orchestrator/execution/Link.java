@@ -12,22 +12,7 @@ public class Link {
 
     private static final int MAX_QUEUE_SIZE = 1;
 
-    private final String sourceFieldName;
-    private final String targetFieldName;
     private final BlockingQueue<DynamicMessage> dataQueue = new ArrayBlockingQueue<>(MAX_QUEUE_SIZE);
-
-    public Link(String sourceFieldName, String targetFieldName) {
-        this.sourceFieldName = sourceFieldName;
-        this.targetFieldName = targetFieldName;
-    }
-
-    public String getSourceFieldName() {
-        return sourceFieldName;
-    }
-
-    public String getTargetFieldName() {
-        return targetFieldName;
-    }
 
     public void put(DynamicMessage dynamicMessage) throws InterruptedException {
         synchronized (dataQueue) {

@@ -8,6 +8,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import pipeline.orchestrator.architecture.LinkInformation;
 import pipeline.orchestrator.architecture.StageInformation;
+import pipeline.orchestrator.execution.stages.AbstractPipelineStage;
+import pipeline.orchestrator.execution.stages.PipelineStages;
 
 import java.util.Map;
 import java.util.Set;
@@ -19,7 +21,7 @@ public class ExecutionOrchestrator implements Runnable {
 
     private static final Logger LOGGER = LogManager.getLogger(ExecutionOrchestrator.class);
 
-    private final Map<StageInformation, PipelineStage> executionStages;
+    private final Map<StageInformation, AbstractPipelineStage> executionStages;
 
     public ExecutionOrchestrator(
             ValueGraph<StageInformation, LinkInformation> architecture) {
@@ -28,7 +30,7 @@ public class ExecutionOrchestrator implements Runnable {
 
         // Create pipeline stages
         Set<StageInformation> stages = architecture.nodes();
-        this.executionStages = Maps.toMap(stages, PipelineStage::new);
+        this.executionStages = Maps.toMap(stages, PipelineStages::buildStage);
 
         // Create links
         Set<EndpointPair<StageInformation>> endpoints = architecture.edges();
@@ -37,8 +39,8 @@ public class ExecutionOrchestrator implements Runnable {
             LinkInformation linkInformation = architecture.edgeValue(endpoint)
                     .orElseThrow(IllegalArgumentException::new);
 
-            PipelineStage sourceStage = executionStages.get(endpoint.source());
-            PipelineStage targetStage = executionStages.get(endpoint.target());
+            AbstractPipelineStage sourceStage = executionStages.get(endpoint.source());
+            AbstractPipelineStage targetStage = executionStages.get(endpoint.target());
 
             LOGGER.info(
                     "Linking stages {}, {} with information {}",
@@ -46,7 +48,7 @@ public class ExecutionOrchestrator implements Runnable {
                     endpoint.target(),
                     linkInformation);
 
-            PipelineStage.linkStages(
+            PipelineStages.linkStages(
                     sourceStage,
                     targetStage,
                     linkInformation);
