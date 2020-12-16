@@ -10,6 +10,8 @@ import pipeline.orchestrator.execution.inputs.StageInputStream;
 import pipeline.orchestrator.execution.outputs.StageOutputStream;
 import pipeline.orchestrator.grpc.FullMethodDescription;
 
+import java.util.concurrent.CountDownLatch;
+
 /**
  * Stage that executes a Server Streaming Grpc Method
  */
@@ -44,7 +46,7 @@ public class ServerStreamingPipelineStage extends AbstractPipelineStage {
 
         while (running) {
             DynamicMessage request = inputStream.get();
-
+            CountDownLatch streamEnd = new CountDownLatch(1);
             try {
                 invoker.call(request, new StreamObserver<>() {
                     @Override
@@ -60,7 +62,7 @@ public class ServerStreamingPipelineStage extends AbstractPipelineStage {
 
                     @Override
                     public void onCompleted() {
-                        /* Do nothing */
+                        streamEnd.countDown();
                     }
                 });
             }
@@ -68,6 +70,13 @@ public class ServerStreamingPipelineStage extends AbstractPipelineStage {
                 getLogger().warn("Unable to execute call", e);
                 System.exit(1);
                 return;
+            }
+            try {
+                // Wait for the stream to end before starting the next stream
+                streamEnd.await();
+            } catch (InterruptedException e) {
+                getLogger().warn("Interrupted", e);
+                Thread.currentThread().interrupt();
             }
 
             if (Thread.currentThread().isInterrupted()) {
