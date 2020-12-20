@@ -8,7 +8,6 @@ import pipeline.orchestrator.verification.annotations.VerifyNotNull;
 import pipeline.orchestrator.verification.annotations.VerifyPositive;
 import pipeline.orchestrator.verification.exceptions.NotNullVerificationException;
 import pipeline.orchestrator.verification.exceptions.PositiveVerificationException;
-import pipeline.orchestrator.verification.exceptions.VerificationException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -94,9 +93,7 @@ public class ObjectVerifier {
                 .forEach(field -> verifyField.accept(object, field));
     }
 
-    private void verifyPositive(Object object, Field field)
-            throws VerificationException {
-
+    private void verifyPositive(Object object, Field field) {
         int value;
         try {
             field.setAccessible(true);
@@ -111,8 +108,7 @@ public class ObjectVerifier {
                 () -> new PositiveVerificationException(field.getName()));
     }
 
-    private void verifyNotNull(Object object, Field field)
-            throws VerificationException {
+    private void verifyNotNull(Object object, Field field) {
 
         Object value;
         try {
@@ -155,8 +151,8 @@ public class ObjectVerifier {
     }
 
     private static class FieldIdentifier {
-        private Object parent;
-        private Field field;
+        private final Object parent;
+        private final Field field;
 
         private FieldIdentifier(Object parent, Field field) {
             this.parent = parent;

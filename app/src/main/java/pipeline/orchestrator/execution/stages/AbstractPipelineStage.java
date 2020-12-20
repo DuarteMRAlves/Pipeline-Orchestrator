@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 import com.google.protobuf.DynamicMessage;
 import io.grpc.Channel;
-import io.grpc.ManagedChannelBuilder;
 import io.grpc.MethodDescriptor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,11 +15,7 @@ import pipeline.orchestrator.architecture.StageInformation;
 import pipeline.orchestrator.execution.Link;
 import pipeline.orchestrator.execution.inputs.StageInputStream;
 import pipeline.orchestrator.execution.outputs.StageOutputStream;
-import pipeline.orchestrator.grpc.FailedToExecuteRequestException;
 import pipeline.orchestrator.grpc.FullMethodDescription;
-import pipeline.orchestrator.grpc.ServerMethodDiscovery;
-
-import java.util.Optional;
 
 /**
  * Class for an abstract pipeline stage

@@ -1,6 +1,6 @@
 package pipeline.orchestrator.execution.inputs;
 
-import com.google.protobuf.DynamicMessage;
+import pipeline.orchestrator.execution.ComputationState;
 import pipeline.orchestrator.execution.Link;
 
 public class SingleInputStream implements StageInputStream {
@@ -12,7 +12,12 @@ public class SingleInputStream implements StageInputStream {
     }
 
     @Override
-    public DynamicMessage get() {
+    public boolean isSource() {
+        return false;
+    }
+
+    @Override
+    public ComputationState get() {
         try {
             return inputLink.take();
         } catch (InterruptedException e) {

@@ -3,8 +3,7 @@ package pipeline.orchestrator.execution.outputs;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.protobuf.Descriptors;
-import com.google.protobuf.DynamicMessage;
+import pipeline.orchestrator.execution.ComputationState;
 import pipeline.orchestrator.execution.Link;
 
 
@@ -15,12 +14,11 @@ public class DuplicateOutputStream implements StageOutputStream {
     public DuplicateOutputStream(
             ImmutableSetMultimap<String, Link> outputs) {
 
-        Preconditions.checkArgument(CanBuildFrom(null, outputs));
+        Preconditions.checkArgument(canBuildFrom(outputs));
         this.outputs = outputs.get("");
     }
 
-    static boolean CanBuildFrom(
-            Descriptors.Descriptor receivedMessageDescriptor,
+    static boolean canBuildFrom(
             ImmutableSetMultimap<String, Link> outputs) {
 
         // Only contains empty key
@@ -29,10 +27,10 @@ public class DuplicateOutputStream implements StageOutputStream {
     }
 
     @Override
-    public void accept(DynamicMessage dynamicMessage) {
+    public void accept(ComputationState computationState) {
         for (Link link : outputs) {
             try {
-                link.put(dynamicMessage);
+                link.put(computationState);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

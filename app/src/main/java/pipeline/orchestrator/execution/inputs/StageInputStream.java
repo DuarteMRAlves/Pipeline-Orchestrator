@@ -2,12 +2,14 @@ package pipeline.orchestrator.execution.inputs;
 
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.protobuf.Descriptors.Descriptor;
-import com.google.protobuf.DynamicMessage;
+import pipeline.orchestrator.execution.ComputationState;
 import pipeline.orchestrator.execution.Link;
 
 import java.util.function.Supplier;
 
-public interface StageInputStream extends Supplier<DynamicMessage> {
+public interface StageInputStream extends Supplier<ComputationState> {
+
+    boolean isSource();
 
     static StageInputStream forInputs(
             Descriptor finalMessageDescriptor,

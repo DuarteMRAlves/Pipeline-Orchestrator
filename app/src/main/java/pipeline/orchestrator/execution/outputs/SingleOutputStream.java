@@ -1,8 +1,7 @@
 package pipeline.orchestrator.execution.outputs;
 
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.protobuf.Descriptors;
-import com.google.protobuf.DynamicMessage;
+import pipeline.orchestrator.execution.ComputationState;
 import pipeline.orchestrator.execution.Link;
 
 class SingleOutputStream implements StageOutputStream {
@@ -14,19 +13,19 @@ class SingleOutputStream implements StageOutputStream {
     }
 
     @Override
-    public void accept(DynamicMessage dynamicMessage) {
+    public void accept(ComputationState state) {
         try {
-            output.put(dynamicMessage);
+            output.put(state);
         }
         catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
     }
 
-    static boolean CanBuildFrom(
-            Descriptors.Descriptor receivedMessageDescriptor,
+    static boolean canBuildFrom(
             ImmutableSetMultimap<String, Link> outputs) {
 
-        return outputs.size() == 1;
+        return outputs.size() == 1
+                && outputs.keys().contains("");
     }
 }

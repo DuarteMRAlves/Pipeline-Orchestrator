@@ -1,20 +1,18 @@
 package pipeline.orchestrator.execution.outputs;
 
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.protobuf.Descriptors;
-import com.google.protobuf.DynamicMessage;
+import pipeline.orchestrator.execution.ComputationState;
 import pipeline.orchestrator.execution.Link;
 
 class SinkOutputStream implements StageOutputStream {
 
-    static boolean CanBuildFrom(
-            Descriptors.Descriptor receivedMessageDescriptor,
+    static boolean canBuildFrom(
             ImmutableSetMultimap<String, Link> outputs) {
         return outputs.isEmpty();
     }
 
     @Override
-    public void accept(DynamicMessage dynamicMessage) {
+    public void accept(ComputationState state) {
         // Do nothing, just drop message
     }
 }
