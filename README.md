@@ -44,7 +44,7 @@ ENV CONFIG_FILE=<config_file_name>
 
 To execute the app with gradle we just need to run the respective gradle task:
 
-* On Linux or MacOS just execute:
+* On Linux or macOS just execute:
 
 ```console
 $ ./gradlew run -DconfigFile="<config_file_path>"

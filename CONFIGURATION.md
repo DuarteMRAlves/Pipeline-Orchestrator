@@ -4,7 +4,7 @@
 
 The configuration file is a [yaml](https://yaml.org) file with 2 mandatory sections: [stages](#stages-section) and [links](#links-section).
 The first section defines the stages for the pipeline. 
-The second defines the connections between the sections.
+The second defines the connections between the stages.
 
 ## Stages Section
 
