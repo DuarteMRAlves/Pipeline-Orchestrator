@@ -55,3 +55,13 @@ $ ./gradlew run -DconfigFile="<config_file_path>"
 ```console
 $ gradlew.bat run -DconfigFile="<config_file_path>"
 ```
+
+## Configuration Examples
+
+We provide several examples of configuration files to achieve different configurations.
+We define the protobuf interfaces of hypothetical services and provide a configuration file for the orchestrator.
+This configuration file would configure the orchestrator to transfer the messages between the services.
+
+Each example focuses on a different specificity of architecture:
+
+* [Simple Ensemble Classifier](examples/ENSEMBLE.md) *(Duplicate and Merge Messages)*

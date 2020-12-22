@@ -71,7 +71,7 @@ This section defines a list of connections between the stages. This will determi
 ```source``` specifies the stage that sends messages in the link. 
 It has the following variables:
 
-* ```name``` is the name of the source stage for the connection.
+* ```stage``` is the name of the source stage for the connection.
 
 * ```field``` is not mandatory. 
   If not defined, then the whole the message will be sent to the target stage. 
@@ -82,7 +82,7 @@ It has the following variables:
 ```target``` specifies the stage that receives messages in the link. 
 It has the following variables:
 
-* ```name``` is the name of the target stage for the connection.
+* ```stage``` is the name of the target stage for the connection.
 
 * ```field``` is not mandatory. 
   If not defined, then the whole received message is delivered to the stage. 
@@ -95,9 +95,9 @@ An example of a link between the two above stages would be:
 ```yaml
 links:
   - source:
-      name: "Stage 1"
+      stage: "Stage 1"
       field: Field1
     target:
-      name: "Stage 2"
+      stage: "Stage 2"
       field: Field2
 ```
