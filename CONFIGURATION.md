@@ -37,7 +37,7 @@ Describes the method of the stage server. Is composed by the following variables
  * ```type``` of the gRPC method to be executed. 
    Is mandatory and can be UNARY, CLIENT_STREAMING, SERVER_STREAMING or BIDI_STREAMING.
 
-```
+```yaml
 method:
   name: Method1
   type: UNARY
@@ -47,7 +47,7 @@ method:
 
 An example of a definition of two stages would be:
 
-```
+```yaml
 stages:
   - name: "Stage 1"
     host: host-1
@@ -92,7 +92,7 @@ It has the following variables:
 
 An example of a link between the two above stages would be:
 
-```
+```yaml
 links:
   - source:
       name: "Stage 1"
