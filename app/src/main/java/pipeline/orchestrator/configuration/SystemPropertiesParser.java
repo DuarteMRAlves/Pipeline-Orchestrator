@@ -10,5 +10,4 @@ public class SystemPropertiesParser extends AbstractConfigurationParser {
     protected Optional<String> getConfigFile() {
         return Optional.ofNullable(System.getProperty(CONFIG_FILE));
     }
-
-    }
+}

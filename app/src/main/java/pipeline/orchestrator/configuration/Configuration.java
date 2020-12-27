@@ -10,7 +10,7 @@ public class Configuration {
 
     @Override
     public String toString() {
-        return "AppConfiguration{" +
+        return "Configuration{" +
                 "configFile='" + configFile + '\'' +
                 '}';
     }

@@ -1,8 +1,5 @@
 package pipeline.orchestrator.configuration;
 
-
-import com.google.common.base.Preconditions;
-
 import java.util.Optional;
 
 /**
@@ -13,17 +10,10 @@ public abstract class AbstractConfigurationParser {
 
     public final Optional<Configuration> buildAppConfiguration() {
 
-        Optional<String> configFile = getConfigFile();
+        Configuration.Builder builder = Configuration.newBuilder();
 
-        // Should not init from environment
-        if (configFile.isEmpty()) {
-            return Optional.empty();
-        }
-
-        Configuration.Builder builder = Configuration.newBuilder()
-                .setConfigFile(configFile.get());
-
-        return Optional.of(builder.build());
+        return getConfigFile()
+                .map(file -> builder.setConfigFile(file).build());
     }
 
     protected abstract Optional<String> getConfigFile();

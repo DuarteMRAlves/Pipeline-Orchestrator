@@ -39,7 +39,6 @@ public class UnaryPipelineStage extends AbstractPipelineStage {
         StageOutputStream outputStream = getStageOutputStream();
         while (running) {
             ComputationState requestState = inputStream.get();
-            getLogger().trace("Received state: {}", requestState);
             DynamicMessage response;
             try {
                 response = invoker.call(requestState.getMessage());
@@ -52,7 +51,6 @@ public class UnaryPipelineStage extends AbstractPipelineStage {
             ComputationState responseState = ComputationState.from(
                     requestState,
                     response);
-            getLogger().trace("Sending state: {}", responseState);
             outputStream.accept(responseState);
 
             if (Thread.currentThread().isInterrupted()) {

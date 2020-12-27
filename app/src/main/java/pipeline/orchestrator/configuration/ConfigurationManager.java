@@ -1,8 +1,5 @@
 package pipeline.orchestrator.configuration;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.util.Optional;
 
 /**
@@ -10,29 +7,23 @@ import java.util.Optional;
  */
 public class ConfigurationManager {
 
-    private static final Logger LOGGER = LogManager.getLogger(ConfigurationManager.class);
-
     /**
      *
-     * @return the configuration for the application
+     * @return the configuration for the application.
+     *         Returns empty if the configuration could not be loaded.
      */
     public Optional<Configuration> getConfiguration() {
-        Optional<Configuration> configuration;
+        // First get configuration from environment
+        return getConfigurationFromEnvironment()
+                // Try get from system properties
+                .or(this::getConfigurationFromSystemProperties);
+    }
 
-        // Try and get configuration from environment
-        configuration = new EnvironmentVariablesParser().buildAppConfiguration();
-        if (configuration.isPresent()) {
-            LOGGER.info("Getting configuration from environment: {}", configuration);
-            return configuration;
-        }
+    private Optional<Configuration> getConfigurationFromEnvironment() {
+        return new EnvironmentVariablesParser().buildAppConfiguration();
+    }
 
-        // Try and get configuration from system properties
-        configuration = new SystemPropertiesParser().buildAppConfiguration();
-        if (configuration.isPresent()) {
-            LOGGER.info("Getting configuration from system properties: {}", configuration);
-            return configuration;
-        }
-
-        return Optional.empty();
+    private Optional<Configuration> getConfigurationFromSystemProperties() {
+        return new SystemPropertiesParser().buildAppConfiguration();
     }
 }
