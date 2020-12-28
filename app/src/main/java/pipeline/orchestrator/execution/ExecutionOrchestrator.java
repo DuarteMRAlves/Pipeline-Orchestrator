@@ -1,6 +1,7 @@
 package pipeline.orchestrator.execution;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.graph.EndpointPair;
 import com.google.common.graph.ValueGraph;
@@ -11,7 +12,7 @@ import pipeline.orchestrator.architecture.StageInformation;
 import pipeline.orchestrator.execution.stages.AbstractPipelineStage;
 import pipeline.orchestrator.execution.stages.PipelineStages;
 
-import java.util.Map;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -21,7 +22,7 @@ public class ExecutionOrchestrator implements Runnable {
 
     private static final Logger LOGGER = LogManager.getLogger(ExecutionOrchestrator.class);
 
-    private final Map<StageInformation, AbstractPipelineStage> executionStages;
+    private final ImmutableMap<String, AbstractPipelineStage> executionStages;
 
     public ExecutionOrchestrator(
             ValueGraph<StageInformation, LinkInformation> architecture) {
@@ -29,8 +30,12 @@ public class ExecutionOrchestrator implements Runnable {
         Preconditions.checkNotNull(architecture);
 
         // Create pipeline stages
-        Set<StageInformation> stages = architecture.nodes();
-        this.executionStages = Maps.toMap(stages, PipelineStages::buildStage);
+        Iterator<AbstractPipelineStage> stages = architecture.nodes().stream()
+                .map(PipelineStages::buildStage)
+                .iterator();
+        this.executionStages = Maps.uniqueIndex(
+                stages,
+                AbstractPipelineStage::getName);
 
         // Create links
         Set<EndpointPair<StageInformation>> endpoints = architecture.edges();
@@ -39,8 +44,8 @@ public class ExecutionOrchestrator implements Runnable {
             LinkInformation linkInformation = architecture.edgeValue(endpoint)
                     .orElseThrow(IllegalArgumentException::new);
 
-            AbstractPipelineStage sourceStage = executionStages.get(endpoint.source());
-            AbstractPipelineStage targetStage = executionStages.get(endpoint.target());
+            AbstractPipelineStage sourceStage = executionStages.get(endpoint.source().getName());
+            AbstractPipelineStage targetStage = executionStages.get(endpoint.target().getName());
 
             LOGGER.info(
                     "Linking stages {}, {} with information {}",
@@ -57,6 +62,7 @@ public class ExecutionOrchestrator implements Runnable {
 
     @Override
     public void run() {
-        this.executionStages.values().forEach(pipelineStage -> new Thread(pipelineStage).start());
+        new StagesMonitor(executionStages);
+        executionStages.values().forEach(pipelineStage -> new Thread(pipelineStage).start());
     }
 }

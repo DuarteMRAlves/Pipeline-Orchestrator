@@ -1,5 +1,6 @@
 package pipeline.orchestrator.execution.stages;
 
+import com.google.common.eventbus.EventBus;
 import com.google.protobuf.Descriptors;
 import io.grpc.Channel;
 import io.grpc.ManagedChannelBuilder;
@@ -22,6 +23,9 @@ import java.util.Optional;
 public class PipelineStages {
 
     private static final Logger LOGGER = LogManager.getLogger(PipelineStages.class);
+
+    // Event bus for the stages to publish their error events
+    private static final EventBus EVENT_BUS = new EventBus("StagesEventBus");
 
     private PipelineStages() {}
 
@@ -52,6 +56,15 @@ public class PipelineStages {
         Link link = new Link();
         source.bindOutput(sourceFieldName, link);
         target.bindInput(targetFieldName, link);
+    }
+
+    /**
+     * Method to register a subscriber to receive error events from
+     * all the stages
+     * @param subscriber subscriber to register
+     */
+    public static void subscribeToStagesEvents(Object subscriber) {
+        EVENT_BUS.register(subscriber);
     }
 
     private static AbstractPipelineStage buildStageFromInformation(StageInformation stageInformation) {
@@ -103,10 +116,18 @@ public class PipelineStages {
             FullMethodDescription fullMethodDesc) {
         Descriptors.MethodDescriptor methodDescriptor = fullMethodDesc.getMethodDescriptor();
         if (isUnary(methodDescriptor)) {
-            return new UnaryPipelineStage(stageInformation, channel, fullMethodDesc);
+            return new UnaryPipelineStage(
+                    stageInformation.getName(),
+                    channel,
+                    fullMethodDesc,
+                    EVENT_BUS);
         }
         else if (isServerStreaming(methodDescriptor)) {
-            return new ServerStreamingPipelineStage(stageInformation, channel, fullMethodDesc);
+            return new ServerStreamingPipelineStage(
+                    stageInformation.getName(),
+                    channel,
+                    fullMethodDesc,
+                    EVENT_BUS);
         }
 
         throw new UnsupportedOperationException("Unsupported method type");

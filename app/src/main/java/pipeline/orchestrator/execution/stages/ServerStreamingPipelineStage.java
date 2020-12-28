@@ -1,12 +1,12 @@
 package pipeline.orchestrator.execution.stages;
 
 import com.google.common.base.Preconditions;
+import com.google.common.eventbus.EventBus;
 import com.google.protobuf.DynamicMessage;
 import io.grpc.Channel;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import pipeline.core.invocation.AsyncServerStreamingMethodInvoker;
-import pipeline.orchestrator.architecture.StageInformation;
 import pipeline.orchestrator.execution.ComputationState;
 import pipeline.orchestrator.execution.inputs.StageInputStream;
 import pipeline.orchestrator.execution.outputs.StageOutputStream;
@@ -26,21 +26,16 @@ public class ServerStreamingPipelineStage extends AbstractPipelineStage {
     private final AsyncServerStreamingMethodInvoker<DynamicMessage, DynamicMessage> invoker;
 
     ServerStreamingPipelineStage(
-            StageInformation stageInformation,
+            String stageName,
             Channel channel,
-            FullMethodDescription fullMethodDescription) {
-        super(stageInformation,  channel, fullMethodDescription);
+            FullMethodDescription fullMethodDescription,
+            EventBus eventBus) {
 
+        super(stageName,  channel, fullMethodDescription, eventBus);
         invoker = AsyncServerStreamingMethodInvoker.<DynamicMessage, DynamicMessage>newBuilder()
                 .forChannel(getChannel())
                 .forMethod(buildGrpcMethodDescriptor())
                 .build();
-
-        getLogger().info(
-                "Connection to processing service at {}:{} with method {}",
-                stageInformation.getServiceHost(),
-                stageInformation.getServicePort(),
-                getFullMethodDescription().getMethodFullName());
     }
 
     @Override

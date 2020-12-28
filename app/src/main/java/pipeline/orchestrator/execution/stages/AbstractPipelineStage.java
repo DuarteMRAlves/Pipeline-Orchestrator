@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.eventbus.EventBus;
 import com.google.protobuf.DynamicMessage;
 import io.grpc.Channel;
 import io.grpc.MethodDescriptor;
@@ -11,7 +12,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import pipeline.core.invocation.DynamicMessages;
 import pipeline.core.invocation.MethodDescriptors;
-import pipeline.orchestrator.architecture.StageInformation;
 import pipeline.orchestrator.execution.Link;
 import pipeline.orchestrator.execution.inputs.StageInputStream;
 import pipeline.orchestrator.execution.outputs.StageOutputStream;
@@ -29,28 +29,43 @@ public abstract class AbstractPipelineStage implements Runnable {
     private final Multimap<String, Link> inputs = HashMultimap.create();
     private final Multimap<String, Link> outputs = HashMultimap.create();
 
+    private final String name;
+
     private final Channel channel;
 
-    private FullMethodDescription fullMethodDescription;
+    private final FullMethodDescription fullMethodDescription;
+
+    private final EventBus eventBus;
 
     // Variable to check if a method that implies that the stage is
     // running was called and so any configuration commands should fail
     private boolean setupComplete = false;
 
     protected AbstractPipelineStage(
-            StageInformation stageInformation,
+            String stageName,
             Channel channel,
-            FullMethodDescription fullMethodDescription) {
+            FullMethodDescription fullMethodDescription,
+            EventBus eventBus) {
 
-        logger = LogManager.getLogger(
-                String.format(
-                        "%s - %s",
-                        AbstractPipelineStage.class.getName(),
-                        stageInformation.getName()));
-
+        this.name = stageName;
         this.channel = channel;
         this.fullMethodDescription = fullMethodDescription;
+        this.eventBus = eventBus;
+        this.logger = LogManager.getLogger(stageName);
+
+        if (logger.isInfoEnabled()) {
+            logger.info(
+                    "Connection to processing service at {} with method {}",
+                    channel.authority(),
+                    getFullMethodDescription().getMethodFullName());
+        }
     }
+
+    /**
+     *
+     * @return name of the stage
+     */
+    public final String getName() { return name; }
 
     /**
      * Binds the field to the inputs of the stage
@@ -106,11 +121,21 @@ public abstract class AbstractPipelineStage implements Runnable {
         return logger;
     }
 
+    /**
+     * Method for a stage to post an event in the respective
+     * event bus
+     * @param object event to post
+     */
+    protected final void postEvent(Object object) {
+        eventBus.post(object);
+    }
+
     @Override
     public String toString() {
-        return "AbstractPipelineStage{" +
-                "target=" + channel.authority() +
-                "method=" + fullMethodDescription.getMethodFullName() +
+        return "PipelineStage{" +
+                "name='" + name + '\'' +
+                "target='" + channel.authority() + '\'' +
+                "method='" + fullMethodDescription.getMethodFullName() + '\'' +
                 '}';
     }
 }

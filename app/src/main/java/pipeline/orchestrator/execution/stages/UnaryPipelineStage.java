@@ -1,13 +1,15 @@
 package pipeline.orchestrator.execution.stages;
 
+import com.google.common.eventbus.EventBus;
 import com.google.protobuf.DynamicMessage;
 import io.grpc.Channel;
 import io.grpc.StatusRuntimeException;
+import pipeline.core.common.grpc.StatusRuntimeExceptions;
 import pipeline.core.invocation.UnaryServiceMethodInvoker;
-import pipeline.orchestrator.architecture.StageInformation;
 import pipeline.orchestrator.execution.ComputationState;
 import pipeline.orchestrator.execution.inputs.StageInputStream;
 import pipeline.orchestrator.execution.outputs.StageOutputStream;
+import pipeline.orchestrator.execution.stages.events.UnavailableServiceEvent;
 import pipeline.orchestrator.grpc.FullMethodDescription;
 
 /**
@@ -15,20 +17,16 @@ import pipeline.orchestrator.grpc.FullMethodDescription;
  */
 public class UnaryPipelineStage extends AbstractPipelineStage {
 
-    private UnaryServiceMethodInvoker<DynamicMessage, DynamicMessage> invoker;
+    private final UnaryServiceMethodInvoker<DynamicMessage, DynamicMessage> invoker;
 
     UnaryPipelineStage(
-            StageInformation stageInformation,
+            String stageName,
             Channel channel,
-            FullMethodDescription fullMethodDescription) {
-        super(stageInformation,  channel, fullMethodDescription);
+            FullMethodDescription fullMethodDescription,
+            EventBus eventBus) {
 
+        super(stageName,  channel, fullMethodDescription, eventBus);
         invoker = buildInvoker();
-        getLogger().info(
-                "Connection to processing service at {}:{} with method {}",
-                stageInformation.getServiceHost(),
-                stageInformation.getServicePort(),
-                getFullMethodDescription().getMethodFullName());
     }
 
     @Override
@@ -44,8 +42,7 @@ public class UnaryPipelineStage extends AbstractPipelineStage {
                 response = invoker.call(requestState.getMessage());
             }
             catch (StatusRuntimeException e) {
-                getLogger().warn("Unable to execute call", e);
-                System.exit(1);
+                handleStatusRuntimeException(e);
                 return;
             }
             ComputationState responseState = ComputationState.from(
@@ -56,6 +53,16 @@ public class UnaryPipelineStage extends AbstractPipelineStage {
             if (Thread.currentThread().isInterrupted()) {
                 running = false;
             }
+        }
+    }
+
+    private void handleStatusRuntimeException(StatusRuntimeException e) {
+        if (StatusRuntimeExceptions.isUnavailable(e)) {
+            postEvent(new UnavailableServiceEvent(getName()));
+        }
+        else {
+            getLogger().error("Unknown StatusRuntimeException when executing call", e);
+            System.exit(1);
         }
     }
 
