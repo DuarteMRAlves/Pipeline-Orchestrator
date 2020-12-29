@@ -1,5 +1,6 @@
 package pipeline.orchestrator.execution.stages;
 
+import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.google.protobuf.Descriptors;
 import io.grpc.Channel;
@@ -14,6 +15,7 @@ import pipeline.orchestrator.grpc.FullMethodDescription;
 import pipeline.orchestrator.grpc.ServerMethodDiscovery;
 
 import java.util.Optional;
+import java.util.concurrent.Executors;
 
 /**
  * Class to assist the usage of PipelineStages
@@ -25,7 +27,8 @@ public class PipelineStages {
     private static final Logger LOGGER = LogManager.getLogger(PipelineStages.class);
 
     // Event bus for the stages to publish their error events
-    private static final EventBus EVENT_BUS = new EventBus("StagesEventBus");
+    // Only single thread executor as not a lot of processin
+    private static final EventBus EVENT_BUS = new AsyncEventBus(Executors.newSingleThreadExecutor());
 
     private PipelineStages() {}
 

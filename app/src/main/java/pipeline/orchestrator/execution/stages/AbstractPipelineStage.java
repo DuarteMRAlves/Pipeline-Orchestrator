@@ -23,7 +23,7 @@ import pipeline.orchestrator.grpc.FullMethodDescription;
  */
 public abstract class AbstractPipelineStage implements Runnable {
 
-    private final Logger logger;
+    private final Logger logger = LogManager.getLogger(AbstractPipelineStage.class);;
 
     // Multimaps with this input and output links for the stage
     private final Multimap<String, Link> inputs = HashMultimap.create();
@@ -51,7 +51,6 @@ public abstract class AbstractPipelineStage implements Runnable {
         this.channel = channel;
         this.fullMethodDescription = fullMethodDescription;
         this.eventBus = eventBus;
-        this.logger = LogManager.getLogger(stageName);
 
         if (logger.isInfoEnabled()) {
             logger.info(
@@ -62,10 +61,14 @@ public abstract class AbstractPipelineStage implements Runnable {
     }
 
     /**
-     *
      * @return name of the stage
      */
     public final String getName() { return name; }
+
+    /**
+     * Indicates that the stage should stop processing messages
+     */
+    public abstract void pauseStage();
 
     /**
      * Binds the field to the inputs of the stage
@@ -134,8 +137,8 @@ public abstract class AbstractPipelineStage implements Runnable {
     public String toString() {
         return "PipelineStage{" +
                 "name='" + name + '\'' +
-                "target='" + channel.authority() + '\'' +
-                "method='" + fullMethodDescription.getMethodFullName() + '\'' +
+                ", target='" + channel.authority() + '\'' +
+                ", method='" + fullMethodDescription.getMethodFullName() + '\'' +
                 '}';
     }
 }

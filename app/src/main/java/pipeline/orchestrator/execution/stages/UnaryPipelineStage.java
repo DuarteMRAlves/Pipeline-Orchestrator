@@ -19,6 +19,8 @@ public class UnaryPipelineStage extends AbstractPipelineStage {
 
     private final UnaryServiceMethodInvoker<DynamicMessage, DynamicMessage> invoker;
 
+    private boolean running = true;
+
     UnaryPipelineStage(
             String stageName,
             Channel channel,
@@ -31,34 +33,49 @@ public class UnaryPipelineStage extends AbstractPipelineStage {
 
     @Override
     public void run() {
-        boolean running = true;
-
         StageInputStream inputStream = getStageInputStream();
         StageOutputStream outputStream = getStageOutputStream();
-        while (running) {
+
+        while (isRunning()) {
             ComputationState requestState = inputStream.get();
-            DynamicMessage response;
             try {
-                response = invoker.call(requestState.getMessage());
+                DynamicMessage response = invoker.call(requestState.getMessage());
+                ComputationState responseState = ComputationState.from(
+                        requestState,
+                        response);
+                outputStream.accept(responseState);
             }
             catch (StatusRuntimeException e) {
                 handleStatusRuntimeException(e);
-                return;
             }
-            ComputationState responseState = ComputationState.from(
-                    requestState,
-                    response);
-            outputStream.accept(responseState);
 
             if (Thread.currentThread().isInterrupted()) {
-                running = false;
+                pauseStage();
             }
+        }
+        getLogger().info("{}: Stage processing finished", getName());
+    }
+
+    /**
+     * Pauses the execution of the stage
+     */
+    @Override
+    public void pauseStage() {
+        synchronized (this) {
+            running = false;
+        }
+    }
+
+    private boolean isRunning() {
+        synchronized (this) {
+            return running;
         }
     }
 
     private void handleStatusRuntimeException(StatusRuntimeException e) {
         if (StatusRuntimeExceptions.isUnavailable(e)) {
             postEvent(new UnavailableServiceEvent(getName()));
+            pauseStage();
         }
         else {
             getLogger().error("Unknown StatusRuntimeException when executing call", e);
