@@ -66,9 +66,28 @@ public abstract class AbstractPipelineStage implements Runnable {
     public final String getName() { return name; }
 
     /**
-     * Indicates that the stage should stop processing messages
+     * Indicates the the stage should resume its
+     * processing after being paused by
+     * {@link AbstractPipelineStage#pause()}.
      */
-    public abstract void pauseStage();
+    public abstract void resume();
+
+    /**
+     * Indicates that the stage should temporarily
+     * stop processing messages. The stage can resume
+     * processing messages with {@link AbstractPipelineStage#resume()}
+     */
+    public abstract void pause();
+
+    /**
+     * Indicates that the stage should finish. The stage
+     * will terminate and no longer will be able to run.
+     * The run function should release all resources and the
+     * stage should exit.
+     * Subsequent calls to resume or pause should not do
+     * anything since the stage is finished
+     */
+    public abstract void finish();
 
     /**
      * Binds the field to the inputs of the stage

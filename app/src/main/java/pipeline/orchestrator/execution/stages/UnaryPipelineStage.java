@@ -19,7 +19,8 @@ public class UnaryPipelineStage extends AbstractPipelineStage {
 
     private final UnaryServiceMethodInvoker<DynamicMessage, DynamicMessage> invoker;
 
-    private boolean running = true;
+    private boolean paused = false;
+    private boolean finished = false;
 
     UnaryPipelineStage(
             String stageName,
@@ -36,7 +37,16 @@ public class UnaryPipelineStage extends AbstractPipelineStage {
         StageInputStream inputStream = getStageInputStream();
         StageOutputStream outputStream = getStageOutputStream();
 
-        while (isRunning()) {
+        // Run forever until finished
+        while (true) {
+
+            waitPaused();
+
+            // Check if finished while paused
+            if (isFinished()) {
+                break;
+            }
+
             ComputationState requestState = inputStream.get();
             try {
                 DynamicMessage response = invoker.call(requestState.getMessage());
@@ -44,38 +54,89 @@ public class UnaryPipelineStage extends AbstractPipelineStage {
                         requestState,
                         response);
                 outputStream.accept(responseState);
-            }
-            catch (StatusRuntimeException e) {
+            } catch (StatusRuntimeException e) {
                 handleStatusRuntimeException(e);
             }
 
             if (Thread.currentThread().isInterrupted()) {
-                pauseStage();
+                pause();
             }
         }
-        getLogger().info("{}: Stage processing finished", getName());
+        getLogger().info("Stage '{}': Processing finished", getName());
     }
 
-    /**
-     * Pauses the execution of the stage
-     */
     @Override
-    public void pauseStage() {
+    public void resume() {
+        getLogger().trace("Stage '{}': Received resume signal", getName());
         synchronized (this) {
-            running = false;
+            // Can only resume if not paused
+            if (!finished) {
+                paused = false;
+                // Notify thread to resume if waiting
+                notifyAll();
+            }
+            else {
+                // Stage remains finished
+                // Should not happen
+                getLogger().warn(
+                        "Stage '{}': Not resumed (already finished)",
+                        getName());
+            }
         }
     }
 
-    private boolean isRunning() {
+    @Override
+    public void pause() {
+        getLogger().trace("Stage '{}': Received pause signal", getName());
         synchronized (this) {
-            return running;
+            // Can only pause if not paused
+            if (!finished) {
+                paused = true;
+            }
+            else {
+                // Stage remains finished
+                // Should not happen
+                getLogger().warn(
+                        "Stage '{}': Not paused (already finished)",
+                        getName());
+            }
+        }
+    }
+
+    @Override
+    public void finish() {
+        getLogger().trace("Stage '{}': Received finish signal", getName());
+        synchronized (this) {
+            // Unpause in order to finish
+            paused = false;
+            finished = true;
+            notifyAll();
+        }
+    }
+
+    private void waitPaused() {
+        synchronized (this) {
+            while (paused) {
+                try {
+                    wait();
+                }
+                catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+    }
+
+    private boolean isFinished() {
+        synchronized (this) {
+            return finished;
         }
     }
 
     private void handleStatusRuntimeException(StatusRuntimeException e) {
         if (StatusRuntimeExceptions.isUnavailable(e)) {
             postEvent(new UnavailableServiceEvent(getName()));
-            pauseStage();
+            pause();
         }
         else {
             getLogger().error("Unknown StatusRuntimeException when executing call", e);

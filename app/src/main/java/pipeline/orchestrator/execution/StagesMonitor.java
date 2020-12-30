@@ -29,15 +29,17 @@ public class StagesMonitor {
                 "Unavailable Service for Stage '{}'",
                 event.getStageName());
         // Pause Stages
-        stages.values().forEach(AbstractPipelineStage::pauseStage);
+        LOGGER.info("Pausing stages");
+        stages.values().forEach(AbstractPipelineStage::pause);
         try {
-            Thread.sleep(20000);
+            Thread.sleep(10000);
         }
         catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             LOGGER.info("Interrupted");
         }
-        LOGGER.info("Monitor Shutdown");
-        System.exit(1);
+        // Resume Stages
+        LOGGER.info("Resuming stages");
+        stages.values().forEach(AbstractPipelineStage::resume);
     }
 }

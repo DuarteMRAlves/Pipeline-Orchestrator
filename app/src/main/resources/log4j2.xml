@@ -8,7 +8,7 @@
     </Appenders>
     <Loggers>
 
-        <Logger name="pipeline.orchestrator" level="TRACE" additivity="false">
+        <Logger name="pipeline.orchestrator" level="INFO" additivity="false">
             <AppenderRef ref="Console" />
         </Logger>
 

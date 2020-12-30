@@ -27,7 +27,8 @@ public class ServerStreamingPipelineStage extends AbstractPipelineStage {
 
     private final AsyncServerStreamingMethodInvoker<DynamicMessage, DynamicMessage> invoker;
 
-    private boolean running = true;
+    private boolean paused = false;
+    private boolean finished = false;
 
     ServerStreamingPipelineStage(
             String stageName,
@@ -51,7 +52,16 @@ public class ServerStreamingPipelineStage extends AbstractPipelineStage {
         // Check if the input stream is a source so that it can ignore ids
         Preconditions.checkState(inputStream.isSource());
 
-        while (isRunning()) {
+        // Run forever until finished
+        while (true) {
+
+            waitPaused();
+
+            // Check if finished while paused
+            if (isFinished()) {
+                break;
+            }
+
             ComputationState requestState = inputStream.get();
             CountDownLatch streamEnd = new CountDownLatch(1);
 
@@ -83,32 +93,86 @@ public class ServerStreamingPipelineStage extends AbstractPipelineStage {
             }
 
             if (Thread.currentThread().isInterrupted()) {
-                pauseStage();
+                pause();
             }
         }
-        getLogger().info("{}: Stage processing finished", getName());
+        getLogger().info("Stage '{}': Processing finished", getName());
     }
 
-    /**
-     * Pauses the execution of the stage
-     */
     @Override
-    public void pauseStage() {
+    public void resume() {
+        getLogger().trace("Stage '{}': Received resume signal", getName());
         synchronized (this) {
-            running = false;
+            // Can only resume if not paused
+            if (!finished) {
+                paused = false;
+                // Notify thread to resume if waiting
+                notifyAll();
+            }
+            else {
+                // Stage remains finished
+                // Should not happen
+                getLogger().warn(
+                        "Stage '{}': Not resumed (already finished)",
+                        getName());
+            }
         }
     }
 
-    private boolean isRunning() {
+    @Override
+    public void pause() {
+        getLogger().trace("Stage '{}': Received pause signal", getName());
         synchronized (this) {
-            return running;
+            // Can only pause if not paused
+            if (!finished) {
+                // In this case of the stream it will keep processing the
+                // received objects and storing them if possible
+                paused = true;
+            }
+            else {
+                // Stage remains finished
+                // Should not happen
+                getLogger().warn(
+                        "Stage '{}': Not paused (already finished)",
+                        getName());
+            }
+        }
+    }
+
+    @Override
+    public void finish() {
+        getLogger().trace("Stage '{}': Received finish signal", getName());
+        synchronized (this) {
+            // Unpause in order to finish
+            paused = false;
+            finished = true;
+            notifyAll();
+        }
+    }
+
+    private void waitPaused() {
+        synchronized (this) {
+            while (paused) {
+                try {
+                    wait();
+                }
+                catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+    }
+
+    private boolean isFinished() {
+        synchronized (this) {
+            return finished;
         }
     }
 
     private void handleThrowable(Throwable t) {
         if (StatusRuntimeExceptions.isInstance(t)) {
             handleStatusRuntimeException((StatusRuntimeException) t);
-            pauseStage();
+            pause();
         }
         else {
             getLogger().error("Unknown Throwable when executing call", t);
