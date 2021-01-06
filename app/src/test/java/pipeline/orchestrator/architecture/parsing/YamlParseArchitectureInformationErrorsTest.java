@@ -1,10 +1,11 @@
 package pipeline.orchestrator.architecture.parsing;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.grpc.MethodDescriptor;
 import org.junit.Test;
+import pipeline.orchestrator.verification.Verifications;
 import pipeline.orchestrator.verification.exceptions.NotNullVerificationException;
-import pipeline.orchestrator.verification.exceptions.PositiveVerificationException;
 
 import java.util.List;
 
@@ -22,7 +23,7 @@ public class YamlParseArchitectureInformationErrorsTest {
     private static final int PORT_2 = 2;
     private static final String METHOD_NAME_2 = "Method Name 2";
 
-    private static final VerifyObjectMapper MAPPER = new VerifyObjectMapper(new YAMLFactory());
+    private static final ObjectMapper MAPPER = new ObjectMapper(new YAMLFactory());
 
     @Test
     public void allFieldsTest() throws Exception {
@@ -49,6 +50,9 @@ public class YamlParseArchitectureInformationErrorsTest {
         ArchitectureInformationDto architectureInformation = MAPPER.readValue(
                 content,
                 ArchitectureInformationDto.class);
+
+        // Nothing should happen
+        Verifications.verify(architectureInformation);
 
 
         List<StageInformationDto> stages = architectureInformation.getStages();
@@ -80,7 +84,7 @@ public class YamlParseArchitectureInformationErrorsTest {
     }
 
     @Test
-    public void missingStagesTest() {
+    public void missingStagesTest() throws Exception {
         String content =
                 "links:\n" +
                 "-  source:\n" +
@@ -88,9 +92,13 @@ public class YamlParseArchitectureInformationErrorsTest {
                 "   target:\n" +
                 "      stage: \"" + STAGE_NAME_2 + "\"\n";
 
+        ArchitectureInformationDto architectureInformation = MAPPER.readValue(
+                content,
+                ArchitectureInformationDto.class);
+
         NotNullVerificationException exception = assertThrows(
                 NotNullVerificationException.class,
-                () -> MAPPER.readValue(content, ArchitectureInformationDto.class));
+                () -> Verifications.verify(architectureInformation));
 
         assertEquals(
                 String.format(NotNullVerificationException.MESSAGE, "stages"),
@@ -98,7 +106,7 @@ public class YamlParseArchitectureInformationErrorsTest {
     }
 
     @Test
-    public void emptyStagesTest() {
+    public void emptyStagesTest() throws Exception {
         String content =
                 "stages:\n" +
                 "links:\n" +
@@ -107,9 +115,13 @@ public class YamlParseArchitectureInformationErrorsTest {
                 "   target:\n" +
                 "      stage: \"" + STAGE_NAME_2 + "\"\n";
 
+        ArchitectureInformationDto architectureInformation = MAPPER.readValue(
+                content,
+                ArchitectureInformationDto.class);
+
         NotNullVerificationException exception = assertThrows(
                 NotNullVerificationException.class,
-                () -> MAPPER.readValue(content, ArchitectureInformationDto.class));
+                () -> Verifications.verify(architectureInformation));
 
         assertEquals(
                 String.format(NotNullVerificationException.MESSAGE, "stages"),
@@ -117,7 +129,7 @@ public class YamlParseArchitectureInformationErrorsTest {
     }
 
     @Test
-    public void missingLinksTest() {
+    public void missingLinksTest() throws Exception {
         String content =
                 "stages:\n" +
                 "-  name: \"" + STAGE_NAME_1 + "\"\n" +
@@ -133,9 +145,13 @@ public class YamlParseArchitectureInformationErrorsTest {
                 "      name: \"" + METHOD_NAME_2 + "\"\n" +
                 "      type: UNARY\n";
 
+        ArchitectureInformationDto architectureInformation = MAPPER.readValue(
+                content,
+                ArchitectureInformationDto.class);
+
         NotNullVerificationException exception = assertThrows(
                 NotNullVerificationException.class,
-                () -> MAPPER.readValue(content, ArchitectureInformationDto.class));
+                () -> Verifications.verify(architectureInformation));
 
         assertEquals(
                 String.format(NotNullVerificationException.MESSAGE, "links"),
@@ -143,7 +159,7 @@ public class YamlParseArchitectureInformationErrorsTest {
     }
 
     @Test
-    public void emptyLinksTest() {
+    public void emptyLinksTest() throws Exception {
         String content =
                 "stages:\n" +
                 "-  name: \"" + STAGE_NAME_1 + "\"\n" +
@@ -160,9 +176,13 @@ public class YamlParseArchitectureInformationErrorsTest {
                 "      type: UNARY\n" +
                 "links:\n";
 
+        ArchitectureInformationDto architectureInformation = MAPPER.readValue(
+                content,
+                ArchitectureInformationDto.class);
+
         NotNullVerificationException exception = assertThrows(
                 NotNullVerificationException.class,
-                () -> MAPPER.readValue(content, ArchitectureInformationDto.class));
+                () -> Verifications.verify(architectureInformation));
 
         assertEquals(
                 String.format(NotNullVerificationException.MESSAGE, "links"),
@@ -170,7 +190,7 @@ public class YamlParseArchitectureInformationErrorsTest {
     }
 
     @Test
-    public void missingStageNameTest() {
+    public void missingStageNameTest() throws Exception {
         String content =
                 "stages:\n" +
                 "-  host: " + HOST_1 + "\n" +
@@ -190,9 +210,13 @@ public class YamlParseArchitectureInformationErrorsTest {
                 "   target:\n" +
                 "      stage: \"" + STAGE_NAME_2 + "\"\n";
 
+        ArchitectureInformationDto architectureInformation = MAPPER.readValue(
+                content,
+                ArchitectureInformationDto.class);
+
         NotNullVerificationException exception = assertThrows(
                 NotNullVerificationException.class,
-                () -> MAPPER.readValue(content, ArchitectureInformationDto.class));
+                () -> Verifications.verify(architectureInformation));
 
         assertEquals(
                 String.format(NotNullVerificationException.MESSAGE, "name"),
@@ -200,7 +224,7 @@ public class YamlParseArchitectureInformationErrorsTest {
     }
 
     @Test
-    public void missingMethodTypeTest() {
+    public void missingMethodTypeTest() throws Exception {
         String content =
                 "stages:\n" +
                 "-  name: \"" + STAGE_NAME_1 + "\"\n" +
@@ -220,9 +244,13 @@ public class YamlParseArchitectureInformationErrorsTest {
                 "   target:\n" +
                 "      stage: \"" + STAGE_NAME_2 + "\"\n";
 
+        ArchitectureInformationDto architectureInformation = MAPPER.readValue(
+                content,
+                ArchitectureInformationDto.class);
+
         NotNullVerificationException exception = assertThrows(
                 NotNullVerificationException.class,
-                () -> MAPPER.readValue(content, ArchitectureInformationDto.class));
+                () -> Verifications.verify(architectureInformation));
 
         assertEquals(
                 String.format(NotNullVerificationException.MESSAGE, "type"),
@@ -230,7 +258,7 @@ public class YamlParseArchitectureInformationErrorsTest {
     }
 
     @Test
-    public void missingLinkTargetTest() {
+    public void missingLinkTargetTest() throws Exception {
         String content =
                 "stages:\n" +
                 "-  name: \"" + STAGE_NAME_1 + "\"\n" +
@@ -249,9 +277,13 @@ public class YamlParseArchitectureInformationErrorsTest {
                 "-  source:\n" +
                 "      stage: \"" + STAGE_NAME_1 + "\"\n";
 
+        ArchitectureInformationDto architectureInformation = MAPPER.readValue(
+                content,
+                ArchitectureInformationDto.class);
+
         NotNullVerificationException exception = assertThrows(
                 NotNullVerificationException.class,
-                () -> MAPPER.readValue(content, ArchitectureInformationDto.class));
+                () -> Verifications.verify(architectureInformation));
 
         assertEquals(
                 String.format(NotNullVerificationException.MESSAGE, "target"),
@@ -259,7 +291,7 @@ public class YamlParseArchitectureInformationErrorsTest {
     }
 
     @Test
-    public void missingLinkTargetStageTest() {
+    public void missingLinkTargetStageTest() throws Exception {
         String content =
                 "stages:\n" +
                 "-  name: \"" + STAGE_NAME_1 + "\"\n" +
@@ -280,9 +312,13 @@ public class YamlParseArchitectureInformationErrorsTest {
                 "   target:\n" +
                 "      stage:\n";
 
+        ArchitectureInformationDto architectureInformation = MAPPER.readValue(
+                content,
+                ArchitectureInformationDto.class);
+
         NotNullVerificationException exception = assertThrows(
                 NotNullVerificationException.class,
-                () -> MAPPER.readValue(content, ArchitectureInformationDto.class));
+                () -> Verifications.verify(architectureInformation));
 
         assertEquals(
                 String.format(NotNullVerificationException.MESSAGE, "stage"),

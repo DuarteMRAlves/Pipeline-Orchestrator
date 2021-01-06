@@ -9,6 +9,7 @@ import pipeline.orchestrator.architecture.StageInformation;
 import pipeline.orchestrator.configuration.Configuration;
 import pipeline.orchestrator.configuration.ConfigurationManager;
 import pipeline.orchestrator.execution.ExecutionOrchestrator;
+import pipeline.orchestrator.verification.errors.ErrorReport;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -27,14 +28,21 @@ public class App {
         }
         Configuration configuration = optionalConfiguration.get();
         LOGGER.info(configuration);
-        ValueGraph<StageInformation, LinkInformation> architecture;
+        ArchitectureParser.ParsingResult result;
         try {
-            architecture = ArchitectureParser.parseYaml(
+            result = ArchitectureParser.parseYaml(
                     configuration.getConfigFile());
         } catch (IOException exception) {
             handleIOException(configuration, exception);
             return;
         }
+        ErrorReport report = result.getReport();
+        if (report.hasErrors()) {
+            if (LOGGER.isErrorEnabled())
+                LOGGER.error(report.summarize());
+            return;
+        }
+        ValueGraph<StageInformation, LinkInformation> architecture = result.getArchitecture();
         new ExecutionOrchestrator(architecture).run();
     }
 

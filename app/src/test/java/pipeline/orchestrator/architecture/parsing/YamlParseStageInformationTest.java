@@ -1,8 +1,10 @@
 package pipeline.orchestrator.architecture.parsing;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.grpc.MethodDescriptor;
 import org.junit.Test;
+import pipeline.orchestrator.verification.Verifications;
 import pipeline.orchestrator.verification.exceptions.NotNullVerificationException;
 import pipeline.orchestrator.verification.exceptions.PositiveVerificationException;
 
@@ -20,7 +22,7 @@ public class YamlParseStageInformationTest {
 
     private static final String METHOD_TYPE = "UNARY";
 
-    private static final VerifyObjectMapper MAPPER = new VerifyObjectMapper(new YAMLFactory());
+    private static final ObjectMapper MAPPER = new ObjectMapper(new YAMLFactory());
 
     @Test
     public void allFieldsTest() throws Exception {
@@ -35,6 +37,8 @@ public class YamlParseStageInformationTest {
         StageInformationDto stageInformation = MAPPER.readValue(
                 content,
                 StageInformationDto.class);
+        // Nothing should happen
+        Verifications.verify(stageInformation);
 
         assertEquals(NAME, stageInformation.getName());
         assertEquals(HOST, stageInformation.getHost());
@@ -55,6 +59,8 @@ public class YamlParseStageInformationTest {
         StageInformationDto stageInformation = MAPPER.readValue(
                 content,
                 StageInformationDto.class);
+        // Nothing should happen
+        Verifications.verify(stageInformation);
 
         assertEquals(NAME, stageInformation.getName());
         assertEquals(HOST, stageInformation.getHost());
@@ -64,7 +70,7 @@ public class YamlParseStageInformationTest {
     }
 
     @Test
-    public void missingNameFieldTest() {
+    public void missingNameFieldTest() throws Exception {
         String content =
                 "host: " + HOST + "\n" +
                 "port: " + PORT + "\n" +
@@ -72,9 +78,13 @@ public class YamlParseStageInformationTest {
                 "  name: " + METHOD_NAME + "\n" +
                 "  type: " + METHOD_TYPE;
 
+        StageInformationDto stageInformation = MAPPER.readValue(
+                content,
+                StageInformationDto.class);
+
         NotNullVerificationException exception = assertThrows(
                 NotNullVerificationException.class,
-                () -> MAPPER.readValue(content, StageInformationDto.class));
+                () ->  Verifications.verify(stageInformation));
 
         assertEquals(
                 String.format(NotNullVerificationException.MESSAGE, "name"),
@@ -82,7 +92,7 @@ public class YamlParseStageInformationTest {
     }
 
     @Test
-    public void missingHostFieldTest() {
+    public void missingHostFieldTest() throws Exception {
         String content =
                 "name: \"" + NAME + "\"\n" +
                 "port: " + PORT + "\n" +
@@ -90,9 +100,13 @@ public class YamlParseStageInformationTest {
                 "  name: " + METHOD_NAME + "\n" +
                 "  type: " + METHOD_TYPE;
 
+        StageInformationDto stageInformation = MAPPER.readValue(
+                content,
+                StageInformationDto.class);
+
         NotNullVerificationException exception = assertThrows(
                 NotNullVerificationException.class,
-                () -> MAPPER.readValue(content, StageInformationDto.class));
+                () ->  Verifications.verify(stageInformation));
 
         assertEquals(
                 String.format(NotNullVerificationException.MESSAGE, "host"),
@@ -100,7 +114,7 @@ public class YamlParseStageInformationTest {
     }
 
     @Test
-    public void nonPositivePortTest() {
+    public void nonPositivePortTest() throws Exception {
         String content =
                 "name: \"" + NAME + "\"\n" +
                 "host: " + HOST + "\n" +
@@ -109,9 +123,13 @@ public class YamlParseStageInformationTest {
                 "  name: " + METHOD_NAME + "\n" +
                 "  type: " + METHOD_TYPE;
 
+        StageInformationDto stageInformation = MAPPER.readValue(
+                content,
+                StageInformationDto.class);
+
         PositiveVerificationException exception = assertThrows(
                 PositiveVerificationException.class,
-                () -> MAPPER.readValue(content, StageInformationDto.class));
+                () -> Verifications.verify(stageInformation));
 
         assertEquals(
                 String.format(PositiveVerificationException.MESSAGE, "port"),
@@ -119,15 +137,19 @@ public class YamlParseStageInformationTest {
     }
 
     @Test
-    public void missingMethodTest() {
+    public void missingMethodTest() throws Exception {
         String content =
                 "name: \"" + NAME + "\"\n" +
                 "host: " + HOST + "\n" +
                 "port: " + PORT + "\n";
 
+        StageInformationDto stageInformation = MAPPER.readValue(
+                content,
+                StageInformationDto.class);
+
         NotNullVerificationException exception = assertThrows(
                 NotNullVerificationException.class,
-                () -> MAPPER.readValue(content, StageInformationDto.class));
+                () -> Verifications.verify(stageInformation));
 
         assertEquals(
                 String.format(NotNullVerificationException.MESSAGE, "method"),
@@ -135,7 +157,7 @@ public class YamlParseStageInformationTest {
     }
 
     @Test
-    public void missingMethodTypeTest() {
+    public void missingMethodTypeTest() throws Exception {
         String content =
                 "name: \"" + NAME + "\"\n" +
                 "host: " + HOST + "\n" +
@@ -143,9 +165,13 @@ public class YamlParseStageInformationTest {
                 "method:\n" +
                 "  name: " + METHOD_NAME;
 
+        StageInformationDto stageInformation = MAPPER.readValue(
+                content,
+                StageInformationDto.class);
+
         NotNullVerificationException exception = assertThrows(
                 NotNullVerificationException.class,
-                () -> MAPPER.readValue(content, StageInformationDto.class));
+                () -> Verifications.verify(stageInformation));
 
         assertEquals(
                 String.format(NotNullVerificationException.MESSAGE, "type"),

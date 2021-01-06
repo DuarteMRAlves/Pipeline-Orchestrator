@@ -1,13 +1,10 @@
 package pipeline.orchestrator.verification;
 
 import org.reflections.ReflectionUtils;
-import pipeline.core.common.utils.Conditions;
 import pipeline.orchestrator.verification.annotations.Verifiable;
 import pipeline.orchestrator.verification.annotations.VerifyIterable;
 import pipeline.orchestrator.verification.annotations.VerifyNotNull;
 import pipeline.orchestrator.verification.annotations.VerifyPositive;
-import pipeline.orchestrator.verification.exceptions.NotNullVerificationException;
-import pipeline.orchestrator.verification.exceptions.PositiveVerificationException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -18,9 +15,12 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 
 /**
- * Class to verify predicates about the values of a given object
+ * Abstract class that verifies an object
+ * Implements the template design pattern
+ * leaving the actions of handling verification
+ * errors to the child classes
  */
-public class ObjectVerifier {
+public abstract class AbstractObjectVerifier {
 
     private final Set<FieldIdentifier> verifiedFields = new HashSet<>();
 
@@ -28,15 +28,36 @@ public class ObjectVerifier {
      * Package private
      * Accesses should be made through the {@link Verifications} API
      */
-    ObjectVerifier() {}
+    AbstractObjectVerifier() {}
 
     /**
      * Check if object meets all desired predicates
      * @param object to verify
      */
-    public void verify(Object object) {
+    protected final void verifyTemplate(Object object) {
+        setContext();
         verifyObject(object);
     }
+
+    /**
+     * Method to be called when starting the verification of
+     * an object so that a child class can initialize any
+     * necessary structure
+     */
+    protected abstract void setContext();
+
+    /**
+     * Method to be called when a non positive field is found
+     * @param name name of the field
+     * @param value value for the field
+     */
+    protected abstract void onNonPositiveField(String name, int value);
+
+    /**
+     * Method to be called when a null field is found
+     * @param name name of the field
+     */
+    protected abstract void onNullField(String name);
 
     /**
      * Verifies a given object for the desired predicates
@@ -103,25 +124,15 @@ public class ObjectVerifier {
             throw new IllegalStateException(e);
         }
 
-        Conditions.checkState(
-                value > 0,
-                () -> new PositiveVerificationException(field.getName()));
+        if (value <= 0)
+            onNonPositiveField(field.getName(), value);
     }
 
     private void verifyNotNull(Object object, Field field) {
+        Object value = getFieldValue(object, field);
 
-        Object value;
-        try {
-            field.setAccessible(true);
-            value = field.get(object);
-        }
-        catch (IllegalAccessException e) {
-            throw new IllegalStateException(e);
-        }
-
-        Conditions.checkState(
-                value != null,
-                () -> new NotNullVerificationException(field.getName()));
+        if (value == null)
+            onNullField(field.getName());
     }
 
     private void verifyIterables(Object object) {
@@ -132,14 +143,8 @@ public class ObjectVerifier {
     }
 
     private void verifyIterable(Object object, Field field) {
-        Object value;
-        try {
-            field.setAccessible(true);
-            value = field.get(object);
-        }
-        catch (IllegalAccessException e) {
-            throw new IllegalStateException(e);
-        }
+        Object value = getFieldValue(object, field);
+
         if (!(value instanceof Iterable)) {
             return;
         }
@@ -148,6 +153,17 @@ public class ObjectVerifier {
         for (Object innerObject : iterable) {
             verifyObject(innerObject);
         }
+    }
+
+    private Object getFieldValue(Object object, Field field) {
+        Object value;
+        try {
+            field.setAccessible(true);
+            value = field.get(object);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        }
+        return value;
     }
 
     private static class FieldIdentifier {

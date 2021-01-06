@@ -1,0 +1,11 @@
+stages:
+  - name: "Stage 1"
+    port: -1
+  - name: "Stage 2"
+    port: 2
+  - host: host1
+links:
+  - source:
+      stage: "Stage 1"
+    target:
+      stage: "Stage 2"

@@ -1,7 +1,9 @@
 package pipeline.orchestrator.architecture.parsing;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.junit.Test;
+import pipeline.orchestrator.verification.Verifications;
 import pipeline.orchestrator.verification.exceptions.NotNullVerificationException;
 
 import static org.junit.Assert.*;
@@ -16,7 +18,7 @@ public class YamlParseLinkInformationTest {
 
     private static final String TARGET_FIELD = "Target Field";
 
-    private static final VerifyObjectMapper MAPPER = new VerifyObjectMapper(new YAMLFactory());
+    private static final ObjectMapper MAPPER = new ObjectMapper(new YAMLFactory());
 
     @Test
     public void allFieldsTest() throws Exception {
@@ -31,6 +33,9 @@ public class YamlParseLinkInformationTest {
         LinkInformationDto linkInformation = MAPPER.readValue(
                 content,
                 LinkInformationDto.class);
+
+        // Nothing should happen
+        Verifications.verify(linkInformation);
 
         assertEquals(SOURCE_STAGE, linkInformation.getSource().getStage());
         assertEquals(SOURCE_FIELD, linkInformation.getSource().getField());
@@ -50,6 +55,9 @@ public class YamlParseLinkInformationTest {
                 content,
                 LinkInformationDto.class);
 
+        // Nothing should happen
+        Verifications.verify(linkInformation);
+
         assertEquals(SOURCE_STAGE, linkInformation.getSource().getStage());
         assertNull(linkInformation.getSource().getField());
         assertEquals(TARGET_STAGE, linkInformation.getTarget().getStage());
@@ -57,15 +65,19 @@ public class YamlParseLinkInformationTest {
     }
 
     @Test
-    public void missingSourceTest() {
+    public void missingSourceTest() throws Exception {
         String content =
                 "target:\n" +
                 "  stage: \"" + TARGET_STAGE + "\"\n" +
                 "  field: \"" + TARGET_FIELD + "\"\n";
 
+        LinkInformationDto linkInformation = MAPPER.readValue(
+                content,
+                LinkInformationDto.class);
+
         NotNullVerificationException exception = assertThrows(
                 NotNullVerificationException.class,
-                () -> MAPPER.readValue(content, LinkInformationDto.class));
+                () -> Verifications.verify(linkInformation));
 
         assertEquals(
                 String.format(NotNullVerificationException.MESSAGE, "source"),
@@ -73,15 +85,19 @@ public class YamlParseLinkInformationTest {
     }
 
     @Test
-    public void missingTargetTest() {
+    public void missingTargetTest() throws Exception {
         String content =
                 "source:\n" +
                 "  stage: \"" + SOURCE_STAGE + "\"\n" +
                 "  field: \"" + SOURCE_FIELD + "\"\n";
 
+        LinkInformationDto linkInformation = MAPPER.readValue(
+                content,
+                LinkInformationDto.class);
+
         NotNullVerificationException exception = assertThrows(
                 NotNullVerificationException.class,
-                () -> MAPPER.readValue(content, LinkInformationDto.class));
+                () -> Verifications.verify(linkInformation));
 
         assertEquals(
                 String.format(NotNullVerificationException.MESSAGE, "target"),
@@ -89,7 +105,7 @@ public class YamlParseLinkInformationTest {
     }
 
     @Test
-    public void missingSourceStageTest() {
+    public void missingSourceStageTest() throws Exception {
         String content =
                 "source:\n" +
                 "  field: \"" + SOURCE_FIELD + "\"\n" +
@@ -97,9 +113,13 @@ public class YamlParseLinkInformationTest {
                 "  stage: \"" + TARGET_STAGE + "\"\n" +
                 "  field: \"" + TARGET_FIELD + "\"\n";
 
+        LinkInformationDto linkInformation = MAPPER.readValue(
+                content,
+                LinkInformationDto.class);
+
         NotNullVerificationException exception = assertThrows(
                 NotNullVerificationException.class,
-                () -> MAPPER.readValue(content, LinkInformationDto.class));
+                () -> Verifications.verify(linkInformation));
 
         assertEquals(
                 String.format(NotNullVerificationException.MESSAGE, "stage"),
@@ -107,7 +127,7 @@ public class YamlParseLinkInformationTest {
     }
 
     @Test
-    public void missingTargetStageTest() {
+    public void missingTargetStageTest() throws Exception {
         String content =
                 "source:\n" +
                 "  stage: \"" + SOURCE_STAGE + "\"\n" +
@@ -115,9 +135,13 @@ public class YamlParseLinkInformationTest {
                 "target:\n" +
                 "  field: \"" + TARGET_FIELD + "\"\n";
 
+        LinkInformationDto linkInformation = MAPPER.readValue(
+                content,
+                LinkInformationDto.class);
+
         NotNullVerificationException exception = assertThrows(
                 NotNullVerificationException.class,
-                () -> MAPPER.readValue(content, LinkInformationDto.class));
+                () -> Verifications.verify(linkInformation));
 
         assertEquals(
                 String.format(NotNullVerificationException.MESSAGE, "stage"),

@@ -30,7 +30,8 @@ public class YamlSingleLineArchitectureTest {
     @Test
     public void singleLineArchitectureTest() throws Exception {
         ImmutableValueGraph<StageInformation, LinkInformation> graph =
-                ArchitectureParser.parseYaml(CONFIG_FILE);
+                ArchitectureParser.parseYaml(CONFIG_FILE)
+                .getArchitecture();
 
         Set<StageInformation> nodes = graph.nodes();
         assertEquals(4, nodes.size());
