@@ -4,9 +4,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
-import pipeline.core.messages.MessageMerger;
 import pipeline.orchestrator.execution.ComputationState;
 import pipeline.orchestrator.execution.Link;
+import pipeline.orchestrator.grpc.messages.DynamicMessageMerger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +14,7 @@ import java.util.Optional;
 
 public class MultipleInputStream implements StageInputStream {
 
-    private final MessageMerger merger;
+    private final DynamicMessageMerger merger;
     private final ImmutableMap<String, Link> inputs;
 
     // Id of the next message to be created
@@ -27,7 +27,7 @@ public class MultipleInputStream implements StageInputStream {
             Descriptors.Descriptor descriptor,
             ImmutableSetMultimap<String, Link> inputs) {
         this.inputs = ImmutableMap.copyOf(inputs.entries());
-        merger = MessageMerger.newBuilder()
+        merger = DynamicMessageMerger.newBuilder()
                 .forDescriptor(descriptor)
                 .build();
     }

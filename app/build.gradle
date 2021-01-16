@@ -29,17 +29,10 @@ def log4jVersion = "2.12.1"
 repositories {
     // Use JCenter for resolving dependencies.
     jcenter()
-    mavenLocal {
-        content {
-            includeGroup "pipeline.core"
-        }
-    }
     mavenCentral()
 }
 
 dependencies {
-    // PipelineCore
-    implementation "pipeline.core:Pipeline-Core:0.0.2-SNAPSHOT"
 
     // This dependency is used by the application.
     implementation 'com.google.guava:guava:30.0-jre'

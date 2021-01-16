@@ -11,7 +11,7 @@ import pipeline.orchestrator.architecture.LinkInformation;
 import pipeline.orchestrator.architecture.StageInformation;
 import pipeline.orchestrator.execution.Link;
 import pipeline.orchestrator.grpc.FailedToExecuteRequestException;
-import pipeline.orchestrator.grpc.FullMethodDescription;
+import pipeline.orchestrator.grpc.methods.FullMethodDescription;
 import pipeline.orchestrator.grpc.ServerMethodDiscovery;
 
 import java.util.Optional;

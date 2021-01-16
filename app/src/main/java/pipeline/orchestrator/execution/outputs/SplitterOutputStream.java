@@ -4,15 +4,15 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
-import pipeline.core.messages.MessageSplitter;
 import pipeline.orchestrator.execution.ComputationState;
 import pipeline.orchestrator.execution.Link;
+import pipeline.orchestrator.grpc.messages.DynamicMessageSplitter;
 
 import java.util.Map;
 
 class SplitterOutputStream implements StageOutputStream {
 
-    private final MessageSplitter splitter;
+    private final DynamicMessageSplitter splitter;
     private final ImmutableSetMultimap<String, Link> outputs;
 
     public SplitterOutputStream(
@@ -20,7 +20,7 @@ class SplitterOutputStream implements StageOutputStream {
             ImmutableSetMultimap<String, Link> outputs) {
 
         this.outputs = outputs;
-        splitter = MessageSplitter.newBuilder()
+        splitter = DynamicMessageSplitter.newBuilder()
                 .forDescriptor(descriptor)
                 .build();
     }
@@ -30,7 +30,7 @@ class SplitterOutputStream implements StageOutputStream {
 
         // Must have all keys not empty and one value per key
         ImmutableSet<String> keys = outputs.keySet();
-        return keys.size() >= 1
+        return !keys.isEmpty()
                 && !keys.contains("")
                 && outputs.entries().size() == keys.size();
     }

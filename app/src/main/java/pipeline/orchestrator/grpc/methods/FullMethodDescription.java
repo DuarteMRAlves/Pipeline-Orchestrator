@@ -1,4 +1,4 @@
-package pipeline.orchestrator.grpc;
+package pipeline.orchestrator.grpc.methods;
 
 import com.google.protobuf.Descriptors.MethodDescriptor;
 

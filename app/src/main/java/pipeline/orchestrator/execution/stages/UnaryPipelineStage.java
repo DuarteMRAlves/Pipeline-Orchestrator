@@ -4,13 +4,13 @@ import com.google.common.eventbus.EventBus;
 import com.google.protobuf.DynamicMessage;
 import io.grpc.Channel;
 import io.grpc.StatusRuntimeException;
-import pipeline.core.common.grpc.StatusRuntimeExceptions;
-import pipeline.core.invocation.UnaryServiceMethodInvoker;
 import pipeline.orchestrator.execution.ComputationState;
 import pipeline.orchestrator.execution.inputs.StageInputStream;
 import pipeline.orchestrator.execution.outputs.StageOutputStream;
 import pipeline.orchestrator.execution.stages.events.UnavailableServiceEvent;
-import pipeline.orchestrator.grpc.FullMethodDescription;
+import pipeline.orchestrator.grpc.methods.FullMethodDescription;
+import pipeline.orchestrator.grpc.StatusRuntimeExceptions;
+import pipeline.orchestrator.grpc.methods.UnaryServiceMethodInvoker;
 
 /**
  * Stage that executes an Unary Grpc Method

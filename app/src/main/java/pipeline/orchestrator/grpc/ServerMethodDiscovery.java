@@ -9,12 +9,12 @@ import com.google.protobuf.Descriptors.MethodDescriptor;
 import com.google.protobuf.Descriptors.ServiceDescriptor;
 import io.grpc.Channel;
 import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
-import pipeline.core.common.protobuf.Descriptors;
-import pipeline.core.common.utils.Conditions;
-import pipeline.core.discovery.ServerInfoProvider;
-import pipeline.core.discovery.UnableToListServicesException;
-import pipeline.core.discovery.UnableToLookupService;
-import pipeline.core.invocation.Naming;
+import pipeline.orchestrator.common.Conditions;
+import pipeline.orchestrator.grpc.methods.FullMethodDescription;
+import pipeline.orchestrator.grpc.reflection.ServerReflectionHelper;
+import pipeline.orchestrator.grpc.reflection.UnableToListServicesException;
+import pipeline.orchestrator.grpc.reflection.UnableToLookupService;
+import pipeline.orchestrator.protobuf.Descriptors;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -25,10 +25,14 @@ public class ServerMethodDiscovery {
 
     public static FullMethodDescription discoverSingleMethod(Channel channel)
         throws FailedToExecuteRequestException {
-        ServerInfoProvider serverInfoProvider = buildServerInfoProvider(channel);
+
+        ServerReflectionHelper serverReflectionHelper =
+                buildServerReflectionHelper(channel);
         try {
-            ServiceDescriptor serviceDescriptor = getServiceDescriptor(serverInfoProvider);
-            List<MethodDescriptor> methodDescriptors = serviceDescriptor.getMethods();
+            ServiceDescriptor serviceDescriptor =
+                    getServiceDescriptor(serverReflectionHelper);
+            List<MethodDescriptor> methodDescriptors =
+                    serviceDescriptor.getMethods();
 
             Conditions.checkState(
                     methodDescriptors.size() == 1,
@@ -38,7 +42,7 @@ public class ServerMethodDiscovery {
 
             MethodDescriptor methodDescriptor = methodDescriptors.get(0);
 
-            String methodFullName = Naming.generateMethodFullName(
+            String methodFullName = Naming.methodFullName(
                     serviceDescriptor.getName(),
                     methodDescriptor.getName());
 
@@ -58,16 +62,16 @@ public class ServerMethodDiscovery {
     public static FullMethodDescription discoverSingleMethod(Channel channel, String methodName)
             throws FailedToExecuteRequestException {
 
-        ServerInfoProvider serverInfoProvider = buildServerInfoProvider(channel);
+        ServerReflectionHelper serverReflectionHelper = buildServerReflectionHelper(channel);
         try {
-            ServiceDescriptor serviceDescriptor = getServiceDescriptor(serverInfoProvider);
+            ServiceDescriptor serviceDescriptor = getServiceDescriptor(serverReflectionHelper);
 
             MethodDescriptor methodDescriptor = serviceDescriptor.getMethods().stream()
                     .filter(descriptor -> methodName.equals(descriptor.getName()))
                     .findAny()
                     .orElseThrow(newExceptionSupplier("Method '%s' Not Found", methodName));
 
-            String methodFullName = Naming.generateMethodFullName(
+            String methodFullName = Naming.methodFullName(
                     serviceDescriptor.getName(),
                     methodDescriptor.getName());
 
@@ -84,21 +88,21 @@ public class ServerMethodDiscovery {
         }
     }
 
-    private static ServerInfoProvider buildServerInfoProvider(Channel channel) {
-        return ServerInfoProvider.newBuilder()
+    private static ServerReflectionHelper buildServerReflectionHelper(Channel channel) {
+        return ServerReflectionHelper.newBuilder()
                 .forChannel(channel)
                 .build();
     }
 
-    private static ServiceDescriptor getServiceDescriptor(ServerInfoProvider serverInfoProvider) throws
+    private static ServiceDescriptor getServiceDescriptor(ServerReflectionHelper serverReflectionHelper) throws
             UnableToListServicesException,
             InterruptedException,
             FailedToExecuteRequestException,
             UnableToLookupService,
             DescriptorValidationException {
-        String serviceName = findServiceName(serverInfoProvider);
+        String serviceName = findServiceName(serverReflectionHelper);
 
-        FileDescriptorSet descriptorSet = serverInfoProvider.lookupService(serviceName);
+        FileDescriptorSet descriptorSet = serverReflectionHelper.lookupService(serviceName);
 
         ImmutableList<FileDescriptor> fileDescriptors = Descriptors.buildAllFrom(descriptorSet);
 
@@ -108,10 +112,10 @@ public class ServerMethodDiscovery {
                 .orElseThrow(newExceptionSupplier("Service Not Found"));
     }
 
-    private static String findServiceName(ServerInfoProvider serverInfoProvider)
+    private static String findServiceName(ServerReflectionHelper serverReflectionHelper)
             throws UnableToListServicesException, InterruptedException,
             FailedToExecuteRequestException {
-        ImmutableSet<String> services = serverInfoProvider.listServices();
+        ImmutableSet<String> services = serverReflectionHelper.listServices();
 
         Conditions.checkState(services.size() == 2,
                 newExceptionSupplier(

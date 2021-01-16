@@ -10,12 +10,11 @@ import io.grpc.Channel;
 import io.grpc.MethodDescriptor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import pipeline.core.invocation.DynamicMessages;
-import pipeline.core.invocation.MethodDescriptors;
 import pipeline.orchestrator.execution.Link;
 import pipeline.orchestrator.execution.inputs.StageInputStream;
 import pipeline.orchestrator.execution.outputs.StageOutputStream;
-import pipeline.orchestrator.grpc.FullMethodDescription;
+import pipeline.orchestrator.grpc.methods.FullMethodDescription;
+import pipeline.orchestrator.grpc.methods.MethodDescriptors;
 
 /**
  * Class for an abstract pipeline stage
@@ -118,11 +117,7 @@ public abstract class AbstractPipelineStage implements Runnable {
     }
 
     protected MethodDescriptor<DynamicMessage, DynamicMessage> buildGrpcMethodDescriptor() {
-        return DynamicMessages.newMethodDescriptor(
-                fullMethodDescription.getMethodFullName(),
-                MethodDescriptors.getType(fullMethodDescription.getMethodDescriptor()),
-                fullMethodDescription.getMethodDescriptor().getInputType(),
-                fullMethodDescription.getMethodDescriptor().getOutputType());
+        return MethodDescriptors.fromDescription(fullMethodDescription);
     }
 
     protected StageInputStream getStageInputStream() {
