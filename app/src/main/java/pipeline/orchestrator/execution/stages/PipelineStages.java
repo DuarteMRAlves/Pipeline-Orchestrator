@@ -27,7 +27,7 @@ public class PipelineStages {
     private static final Logger LOGGER = LogManager.getLogger(PipelineStages.class);
 
     // Event bus for the stages to publish their error events
-    // Only single thread executor as not a lot of processin
+    // Only single thread executor as not a lot of processing
     private static final EventBus EVENT_BUS = new AsyncEventBus(Executors.newSingleThreadExecutor());
 
     private PipelineStages() {}
@@ -117,23 +117,38 @@ public class PipelineStages {
             StageInformation stageInformation,
             Channel channel,
             FullMethodDescription fullMethodDesc) {
-        Descriptors.MethodDescriptor methodDescriptor = fullMethodDesc.getMethodDescriptor();
-        if (isUnary(methodDescriptor)) {
-            return new UnaryPipelineStage(
-                    stageInformation.getName(),
-                    channel,
-                    fullMethodDesc,
-                    EVENT_BUS);
-        }
-        else if (isServerStreaming(methodDescriptor)) {
-            return new ServerStreamingPipelineStage(
-                    stageInformation.getName(),
-                    channel,
-                    fullMethodDesc,
-                    EVENT_BUS);
-        }
 
-        throw new UnsupportedOperationException("Unsupported method type");
+        // Builder to use when building the new stage
+        StageBuilder<?> builder = getStageBuilder(
+                stageInformation,
+                fullMethodDesc.getMethodDescriptor());
+
+        return builder
+                .setName(stageInformation.getName())
+                .setChannel(channel)
+                .setFullMethodDescription(fullMethodDesc)
+                .setEventBus(EVENT_BUS)
+                .build();
+    }
+
+    private static StageBuilder<?> getStageBuilder(
+            StageInformation stageInformation,
+            Descriptors.MethodDescriptor methodDescriptor) {
+
+        StageBuilder<?> builder;
+        if (isUnary(methodDescriptor) && isOneShot(stageInformation)) {
+            builder = OneShotUnaryPipelineStage.newBuilder();
+        }
+        else if (isUnary(methodDescriptor) && !isOneShot(stageInformation)) {
+            builder = UnaryPipelineStage.newBuilder();
+        }
+        else if (isServerStreaming(methodDescriptor) && !isOneShot(stageInformation)) {
+            builder = ServerStreamingPipelineStage.newBuilder();
+        }
+        else {
+            throw new UnsupportedOperationException("Unsupported method type");
+        }
+        return builder;
     }
 
     private static boolean isUnary(Descriptors.MethodDescriptor descriptor) {
@@ -142,5 +157,9 @@ public class PipelineStages {
 
     private static boolean isServerStreaming(Descriptors.MethodDescriptor descriptor) {
         return descriptor.isServerStreaming() && !descriptor.isClientStreaming();
+    }
+
+    private static boolean isOneShot(StageInformation stageInformation) {
+        return stageInformation.getOneShot();
     }
 }

@@ -1,5 +1,6 @@
 package pipeline.orchestrator.execution.stages;
 
+import com.google.common.base.Preconditions;
 import com.google.common.eventbus.EventBus;
 import com.google.protobuf.DynamicMessage;
 import io.grpc.Channel;
@@ -8,21 +9,26 @@ import pipeline.orchestrator.execution.ComputationState;
 import pipeline.orchestrator.execution.inputs.StageInputStream;
 import pipeline.orchestrator.execution.outputs.StageOutputStream;
 import pipeline.orchestrator.execution.stages.events.UnavailableServiceEvent;
-import pipeline.orchestrator.grpc.methods.FullMethodDescription;
 import pipeline.orchestrator.grpc.StatusRuntimeExceptions;
+import pipeline.orchestrator.grpc.methods.FullMethodDescription;
 import pipeline.orchestrator.grpc.methods.UnaryServiceMethodInvoker;
 
 /**
- * Stage that executes an Unary Grpc Method
+ * Pipeline stage that executes an Unary Grpc Method
+ * exactly once.
+ * This stage can be used for running one time when the
+ * pipeline starts and generating a startup message that
+ * is only required as an initial configuration or setup
+ * for another stage.
  */
-public class UnaryPipelineStage extends AbstractPipelineStage {
+public class OneShotUnaryPipelineStage extends AbstractPipelineStage {
 
     private final UnaryServiceMethodInvoker<DynamicMessage, DynamicMessage> invoker;
 
     private boolean paused = false;
     private boolean finished = false;
 
-    private UnaryPipelineStage(
+    private OneShotUnaryPipelineStage(
             String stageName,
             Channel channel,
             FullMethodDescription fullMethodDescription,
@@ -37,30 +43,32 @@ public class UnaryPipelineStage extends AbstractPipelineStage {
         StageInputStream inputStream = getStageInputStream();
         StageOutputStream outputStream = getStageOutputStream();
 
-        // Run forever until finished
-        while (true) {
+        // Check if the input stream is a source.
+        Preconditions.checkState(inputStream.isSource());
 
-            waitPaused();
+        waitPaused();
 
-            // Check if finished while paused
-            if (isFinished()) {
-                break;
-            }
+        // Check if finished while paused
+        if (isFinished()) {
+            return;
+        }
 
-            ComputationState requestState = inputStream.get();
-            try {
-                DynamicMessage response = invoker.call(requestState.getMessage());
-                ComputationState responseState = ComputationState.from(
-                        requestState,
-                        response);
-                outputStream.accept(responseState);
-            } catch (StatusRuntimeException e) {
-                handleStatusRuntimeException(e);
-            }
+        ComputationState requestState = inputStream.get();
+        try {
+            DynamicMessage response = invoker.call(requestState.getMessage());
+            ComputationState responseState = ComputationState.from(
+                    requestState,
+                    response);
+            outputStream.accept(responseState);
+        } catch (StatusRuntimeException e) {
+            handleStatusRuntimeException(e);
+        }
 
-            if (Thread.currentThread().isInterrupted()) {
-                pause();
-            }
+        if (Thread.currentThread().isInterrupted()) {
+            pause();
+        }
+        synchronized (this) {
+            finished = true;
         }
         getLogger().info("Stage '{}': Processing finished", getName());
     }
@@ -115,10 +123,10 @@ public class UnaryPipelineStage extends AbstractPipelineStage {
     }
 
     /**
-     * Returns a builder for unary pipeline stages
+     * Returns a builder for one shot unary pipeline stages
      * @return the new builder
      */
-    public static StageBuilder<UnaryPipelineStage> newBuilder() {
+    public static StageBuilder<OneShotUnaryPipelineStage> newBuilder() {
         return new Builder();
     }
 
@@ -159,11 +167,11 @@ public class UnaryPipelineStage extends AbstractPipelineStage {
                 .build();
     }
 
-    private static final class Builder extends StageBuilder<UnaryPipelineStage> {
+    static final class Builder extends StageBuilder<OneShotUnaryPipelineStage> {
 
         @Override
-        public UnaryPipelineStage build() {
-            return new UnaryPipelineStage(
+        public OneShotUnaryPipelineStage build() {
+            return new OneShotUnaryPipelineStage(
                     getName(),
                     getChannel(),
                     getDescription(),

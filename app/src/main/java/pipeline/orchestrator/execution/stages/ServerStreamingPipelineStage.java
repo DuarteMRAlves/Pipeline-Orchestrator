@@ -30,7 +30,7 @@ public class ServerStreamingPipelineStage extends AbstractPipelineStage {
     private boolean paused = false;
     private boolean finished = false;
 
-    ServerStreamingPipelineStage(
+    private ServerStreamingPipelineStage(
             String stageName,
             Channel channel,
             FullMethodDescription fullMethodDescription,
@@ -150,6 +150,14 @@ public class ServerStreamingPipelineStage extends AbstractPipelineStage {
         }
     }
 
+    /**
+     * Returns a builder for server streaming pipeline stages
+     * @return the new builder
+     */
+    public static StageBuilder<ServerStreamingPipelineStage> newBuilder() {
+        return new Builder();
+    }
+
     private void waitPaused() {
         synchronized (this) {
             while (paused) {
@@ -189,6 +197,18 @@ public class ServerStreamingPipelineStage extends AbstractPipelineStage {
                     "Unknown StatusRuntimeException when executing call",
                     e);
             System.exit(1);
+        }
+    }
+
+    static final class Builder extends StageBuilder<ServerStreamingPipelineStage> {
+
+        @Override
+        public ServerStreamingPipelineStage build() {
+            return new ServerStreamingPipelineStage(
+                    getName(),
+                    getChannel(),
+                    getDescription(),
+                    getEventBus());
         }
     }
 }

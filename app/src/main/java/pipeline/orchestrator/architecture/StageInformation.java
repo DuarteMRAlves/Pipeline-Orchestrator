@@ -5,6 +5,9 @@ import io.grpc.MethodDescriptor.MethodType;
 
 import java.util.Optional;
 
+/**
+ * Class to collect information about a stage
+ */
 public class StageInformation {
 
     private String name = null;
@@ -13,6 +16,12 @@ public class StageInformation {
 
     private String methodName = null;
     private MethodType methodType = null;
+
+    /**
+     * Specifies if the stage method should only be executed one time.
+     * True if the stage is only executed once and false otherwise.
+     */
+    private boolean oneShot = false;
 
     private StageInformation() {}
 
@@ -36,6 +45,10 @@ public class StageInformation {
         return methodType;
     }
 
+    public boolean getOneShot() {
+        return oneShot;
+    }
+
     @Override
     public String toString() {
         return "StageInformation{" +
@@ -43,6 +56,7 @@ public class StageInformation {
                 ", serviceHost='" + serviceHost + '\'' +
                 ", servicePort=" + servicePort +
                 ", methodName='" + methodName + '\'' +
+                ", oneShot=" + oneShot +
                 '}';
     }
 
@@ -78,6 +92,11 @@ public class StageInformation {
             return this;
         }
 
+        public Builder setOneShot(boolean oneShot) {
+            current.oneShot = oneShot;
+            return this;
+        }
+
         public Builder from(StageInformation stageInformation) {
             current = copy(stageInformation);
             return this;
@@ -103,6 +122,7 @@ public class StageInformation {
             stageInformation.servicePort = original.servicePort;
             stageInformation.methodName = original.methodName;
             stageInformation.methodType = original.methodType;
+            stageInformation.oneShot = original.oneShot;
             return stageInformation;
         }
     }
