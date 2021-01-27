@@ -24,6 +24,7 @@ java {
 }
 
 def grpcVersion = "1.32.2"
+def protobufVersion = "3.12.0"
 def jacksonVersion = "2.12.0"
 def log4jVersion = "2.12.1"
 repositories {
@@ -41,6 +42,11 @@ dependencies {
     implementation "io.grpc:grpc-netty:${grpcVersion}"
     implementation "io.grpc:grpc-protobuf:${grpcVersion}"
     implementation "io.grpc:grpc-stub:${grpcVersion}"
+
+    // Protobuf
+    implementation group: "com.google.protobuf", name: "protobuf-java", version: "${protobufVersion}"
+    implementation group: "com.google.protobuf", name: "protobuf-java-util", version: "${protobufVersion}"
+
     // For grpc reflection
     implementation "io.grpc:grpc-services:${grpcVersion}"
     implementation "com.google.api.grpc:proto-google-common-protos:1.16.0"
@@ -131,11 +137,6 @@ test {
 
     // show standard out and standard error of the test JVM(s) on the console
     // testLogging.showStandardStreams = true
-
-    // listen to events in the test execution lifecycle
-    beforeTest { descriptor ->
-        logger.lifecycle("Running test: " + descriptor)
-    }
 
     afterSuite { desc, result ->
         if (!desc.parent) { // will match the outermost suite
