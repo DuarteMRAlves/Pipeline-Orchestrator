@@ -24,7 +24,7 @@ public class ServerMethodDiscovery {
     private ServerMethodDiscovery() {}
 
     public static FullMethodDescription discoverSingleMethod(Channel channel)
-        throws FailedToExecuteRequestException {
+        throws UnableToDiscoverMethodException {
 
         ServerReflectionHelper serverReflectionHelper =
                 buildServerReflectionHelper(channel);
@@ -50,17 +50,20 @@ public class ServerMethodDiscovery {
                     .setMethodDescriptor(methodDescriptor)
                     .setMethodFullName(methodFullName)
                     .build();
-
-        } catch (DescriptorValidationException | UnableToListServicesException | UnableToLookupService exception) {
-            throw new FailedToExecuteRequestException("Unable to discover method", exception);
+        } catch (UnableToListServicesException exception) {
+            throw buildUnableToDiscoverMethodException(channel.authority(), exception);
+        } catch (UnableToLookupService exception) {
+            throw buildUnableToDiscoverMethodException(channel.authority(), exception);
+        } catch (DescriptorValidationException exception) {
+            throw buildUnableToDiscoverMethodException(exception);
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
-            throw new FailedToExecuteRequestException("Unable to discover method", exception);
+            throw new UnableToDiscoverMethodException("Interrupted", exception);
         }
     }
 
     public static FullMethodDescription discoverSingleMethod(Channel channel, String methodName)
-            throws FailedToExecuteRequestException {
+            throws UnableToDiscoverMethodException {
 
         ServerReflectionHelper serverReflectionHelper = buildServerReflectionHelper(channel);
         try {
@@ -80,11 +83,15 @@ public class ServerMethodDiscovery {
                     .setMethodFullName(methodFullName)
                     .build();
 
-        } catch (DescriptorValidationException | UnableToListServicesException | UnableToLookupService exception) {
-            throw new FailedToExecuteRequestException("Unable to discover method", exception);
+        } catch (UnableToListServicesException exception) {
+            throw buildUnableToDiscoverMethodException(channel.authority(), exception);
+        } catch (UnableToLookupService exception) {
+            throw buildUnableToDiscoverMethodException(channel.authority(), exception);
+        } catch (DescriptorValidationException exception) {
+            throw buildUnableToDiscoverMethodException(exception);
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
-            throw new FailedToExecuteRequestException("Unable to discover method", exception);
+            throw new UnableToDiscoverMethodException("Interrupted", exception);
         }
     }
 
@@ -97,7 +104,7 @@ public class ServerMethodDiscovery {
     private static ServiceDescriptor getServiceDescriptor(ServerReflectionHelper serverReflectionHelper) throws
             UnableToListServicesException,
             InterruptedException,
-            FailedToExecuteRequestException,
+            UnableToDiscoverMethodException,
             UnableToLookupService,
             DescriptorValidationException {
         String serviceName = findServiceName(serverReflectionHelper);
@@ -114,7 +121,7 @@ public class ServerMethodDiscovery {
 
     private static String findServiceName(ServerReflectionHelper serverReflectionHelper)
             throws UnableToListServicesException, InterruptedException,
-            FailedToExecuteRequestException {
+            UnableToDiscoverMethodException {
         ImmutableSet<String> services = serverReflectionHelper.listServices();
 
         Conditions.checkState(services.size() == 2,
@@ -129,7 +136,30 @@ public class ServerMethodDiscovery {
                         "Invalid services: Expected service different from gRPC Reflection Service"));
     }
 
-    private static Supplier<FailedToExecuteRequestException> newExceptionSupplier(String message, Object... params) {
-        return () -> new FailedToExecuteRequestException(String.format(message, params));
+    private static Supplier<UnableToDiscoverMethodException> newExceptionSupplier(String message, Object... params) {
+        return () -> new UnableToDiscoverMethodException(String.format(message, params));
+    }
+
+    private static UnableToDiscoverMethodException buildUnableToDiscoverMethodException(
+            String authority,
+            UnableToListServicesException exception) {
+        return new UnableToDiscoverMethodException(
+                String.format("Unable to list services at %s", authority),
+                exception);
+    }
+
+    private static UnableToDiscoverMethodException buildUnableToDiscoverMethodException(
+            String authority,
+            UnableToLookupService exception) {
+        return new UnableToDiscoverMethodException(
+                String.format("Unable to lookup service at %s", authority),
+                exception);
+    }
+
+    private static UnableToDiscoverMethodException buildUnableToDiscoverMethodException(
+            DescriptorValidationException exception) {
+        return new UnableToDiscoverMethodException(
+                "Protobuf Descriptors Error",
+                exception);
     }
 }

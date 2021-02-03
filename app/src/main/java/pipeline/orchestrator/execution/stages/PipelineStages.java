@@ -10,7 +10,7 @@ import org.apache.logging.log4j.Logger;
 import pipeline.orchestrator.architecture.LinkInformation;
 import pipeline.orchestrator.architecture.StageInformation;
 import pipeline.orchestrator.execution.Link;
-import pipeline.orchestrator.grpc.FailedToExecuteRequestException;
+import pipeline.orchestrator.grpc.UnableToDiscoverMethodException;
 import pipeline.orchestrator.grpc.methods.FullMethodDescription;
 import pipeline.orchestrator.grpc.ServerMethodDiscovery;
 
@@ -85,8 +85,8 @@ public class PipelineStages {
                 .or(() -> getFullMethodDescription(channel));
 
         return fullMethodDesc.map(desc -> getPipelineStage(stageInformation, channel, desc))
-                // Should never happen
-                .orElseThrow(() -> new IllegalStateException("Unknwon Pipeline Stage"));
+                .orElseThrow(() -> new IllegalStateException(
+                        String.format("Unable to build pipeline stage for %s", channel.authority())));
     }
 
 
@@ -96,8 +96,8 @@ public class PipelineStages {
 
         try {
             return Optional.of(ServerMethodDiscovery.discoverSingleMethod(channel, methodName));
-        } catch (FailedToExecuteRequestException exception) {
-            LOGGER.warn("Unable to connect to service", exception);
+        } catch (UnableToDiscoverMethodException exception) {
+            LOGGER.warn("Unable get method description for {}", channel.authority(), exception);
             return Optional.empty();
         }
     }
@@ -107,8 +107,8 @@ public class PipelineStages {
 
         try {
             return Optional.of(ServerMethodDiscovery.discoverSingleMethod(channel));
-        } catch (FailedToExecuteRequestException exception) {
-            LOGGER.warn("Unable to connect to service", exception);
+        } catch (UnableToDiscoverMethodException exception) {
+            LOGGER.warn("Unable get method description for {}", channel.authority(), exception);
             return Optional.empty();
         }
     }

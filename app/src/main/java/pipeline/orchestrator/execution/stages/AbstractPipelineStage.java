@@ -22,7 +22,7 @@ import pipeline.orchestrator.grpc.methods.MethodDescriptors;
  */
 public abstract class AbstractPipelineStage implements Runnable {
 
-    private final Logger logger = LogManager.getLogger(AbstractPipelineStage.class);;
+    private final Logger logger = LogManager.getLogger(AbstractPipelineStage.class);
 
     // Multimaps with this input and output links for the stage
     private final Multimap<String, Link> inputs = HashMultimap.create();
