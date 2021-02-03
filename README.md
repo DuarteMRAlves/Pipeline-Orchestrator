@@ -16,13 +16,33 @@ The configuration for the orchestrator is defined in a [configuration file](CONF
 
 ### Docker
 
-In order to deploy the app with docker execute the following steps:
+When running the orchestrator with Docker, the environment variable `CONFIG_FILE` must be set to the path of the configuration file.
+
+In order to deploy the app execute the following steps:
 
 * Build the base docker image *(This image is the same for all pipelines and has everything except the pipeline configuration)*:
 
-```console
+```shell
 $ ./gradlew buildDocker
 ```
+
+* Choose one of the following alternatives to specify the pipeline configuration:
+  
+#### Mount the configuration
+
+* Mount the config file in /app/\<config_file_name\> by running the container with the following flag:
+
+```shell
+--mount type=bind,source=<config_file_path>/<config_file_name>,target=/app/<config_file_name>
+```
+
+* Set `CONFIG_FILE` to \<config file path\> by running the container with the following flag:
+
+```shell
+--env CONFIG_FILE=<config_file_name>
+```
+
+#### Create a new image with the configuration
 
 * Create a new docker image from the base image with the configuration file *(The Dockerfile can be something like)*:
 
@@ -38,7 +58,7 @@ COPY <config_file_path> .
 ENV CONFIG_FILE=<config_file_name>
 ```
 
-* Build and run the orchestrator.
+* Build and run the new image.
 
 ### Gradle
 
@@ -46,13 +66,13 @@ To execute the app with gradle we just need to run the respective gradle task:
 
 * On Linux or macOS just execute:
 
-```console
+```shell
 $ ./gradlew run -DconfigFile="<config_file_path>"
 ```
 
 * On Windows run *(Not tested but should work)*:
 
-```console
+```shell
 $ gradlew.bat run -DconfigFile="<config_file_path>"
 ```
 
