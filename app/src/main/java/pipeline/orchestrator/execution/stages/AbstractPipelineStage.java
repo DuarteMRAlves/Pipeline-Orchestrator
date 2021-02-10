@@ -121,6 +121,8 @@ public abstract class AbstractPipelineStage implements Runnable {
     }
 
     protected StageInputStream getStageInputStream() {
+        logger.trace("Stage '{}': Building Input Stream", name);
+
         setupComplete = true;
         return StageInputStream.forInputs(
                 fullMethodDescription.getMethodDescriptor().getInputType(),
@@ -128,6 +130,8 @@ public abstract class AbstractPipelineStage implements Runnable {
     }
 
     protected StageOutputStream getStageOutputStream() {
+        logger.trace("Stage '{}': Building Output Stream", name);
+
         setupComplete = true;
         return StageOutputStream.forOutputs(
                 fullMethodDescription.getMethodDescriptor().getOutputType(),

@@ -45,9 +45,10 @@ public class ServerStreamingPipelineStage extends AbstractPipelineStage {
 
     @Override
     public void run() {
-
         StageInputStream inputStream = getStageInputStream();
         StageOutputStream outputStream = getStageOutputStream();
+
+        getLogger().debug("Stage '{}': Running", getName());
 
         // Check if the input stream is a source so that it can ignore ids
         Preconditions.checkState(inputStream.isSource());
@@ -161,6 +162,7 @@ public class ServerStreamingPipelineStage extends AbstractPipelineStage {
     private void waitPaused() {
         synchronized (this) {
             while (paused) {
+                getLogger().trace("Stage '{}': Waiting", getName());
                 try {
                     wait();
                 }

@@ -40,6 +40,7 @@ public class PipelineStages {
      *         requests on the given stage
      */
     public static AbstractPipelineStage buildStage(StageInformation stageInformation) {
+        logBuildStage(stageInformation);
         return buildStageFromInformation(stageInformation);
     }
 
@@ -54,6 +55,8 @@ public class PipelineStages {
             AbstractPipelineStage target,
             LinkInformation linkInformation) {
 
+        logLinkStages(source, target, linkInformation);
+
         String sourceFieldName = linkInformation.getSourceFieldName().orElse("");
         String targetFieldName = linkInformation.getTargetFieldName().orElse("");
         Link link = new Link();
@@ -67,6 +70,9 @@ public class PipelineStages {
      * @param subscriber subscriber to register
      */
     public static void subscribeToStagesEvents(Object subscriber) {
+
+        LOGGER.trace("New Pipeline Stages Events subscriber: {}", subscriber);
+
         EVENT_BUS.register(subscriber);
     }
 
@@ -161,5 +167,40 @@ public class PipelineStages {
 
     private static boolean isOneShot(StageInformation stageInformation) {
         return stageInformation.getOneShot();
+    }
+
+    private static void logBuildStage(StageInformation stageInformation) {
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace(
+                    "Stage '{}': Building stage from {}",
+                    stageInformation.getName(),
+                    stageInformation);
+        }
+        else if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(
+                    "Stage '{}': Building stage",
+                    stageInformation.getName());
+        }
+    }
+
+    private static void logLinkStages(
+            AbstractPipelineStage source,
+            AbstractPipelineStage target,
+            LinkInformation linkInformation) {
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace(
+                    "Linking stage {} to {} with information {}",
+                    source,
+                    target,
+                    linkInformation);
+        }
+        else if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(
+                    "Linking stage '{}' to '{}' ",
+                    source.getName(),
+                    target.getName());
+        }
     }
 }

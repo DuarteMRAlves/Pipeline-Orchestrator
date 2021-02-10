@@ -47,12 +47,6 @@ public class ExecutionOrchestrator implements Runnable {
             AbstractPipelineStage sourceStage = executionStages.get(endpoint.source().getName());
             AbstractPipelineStage targetStage = executionStages.get(endpoint.target().getName());
 
-            LOGGER.info(
-                    "Linking stages {}, {} with information {}",
-                    endpoint.source(),
-                    endpoint.target(),
-                    linkInformation);
-
             PipelineStages.linkStages(
                     sourceStage,
                     targetStage,
@@ -62,6 +56,7 @@ public class ExecutionOrchestrator implements Runnable {
 
     @Override
     public void run() {
+        LOGGER.info("Starting Pipeline Execution");
         new StagesMonitor(executionStages);
         executionStages.values().forEach(pipelineStage -> new Thread(pipelineStage).start());
     }

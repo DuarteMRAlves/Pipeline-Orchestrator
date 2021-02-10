@@ -27,7 +27,6 @@ public class App {
             return;
         }
         Configuration configuration = optionalConfiguration.get();
-        LOGGER.info(configuration);
         ArchitectureParser.ParsingResult result;
         try {
             result = ArchitectureParser.parseYaml(
@@ -51,7 +50,7 @@ public class App {
             LOGGER.error("File not found: '{}'", configuration.getConfigFile());
         }
         else {
-            LOGGER.error("IOException when parsing pipeline architecture", exception);
+            LOGGER.error("Unknown IOException when parsing pipeline architecture", exception);
         }
     }
 }

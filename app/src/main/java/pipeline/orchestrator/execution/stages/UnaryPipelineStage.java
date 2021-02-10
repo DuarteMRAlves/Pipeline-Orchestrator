@@ -37,6 +37,8 @@ public class UnaryPipelineStage extends AbstractPipelineStage {
         StageInputStream inputStream = getStageInputStream();
         StageOutputStream outputStream = getStageOutputStream();
 
+        getLogger().debug("Stage '{}': Running", getName());
+
         // Run forever until finished
         while (true) {
 
@@ -125,6 +127,7 @@ public class UnaryPipelineStage extends AbstractPipelineStage {
     private void waitPaused() {
         synchronized (this) {
             while (paused) {
+                getLogger().trace("Stage '{}': Waiting", getName());
                 try {
                     wait();
                 }
@@ -147,7 +150,10 @@ public class UnaryPipelineStage extends AbstractPipelineStage {
             pause();
         }
         else {
-            getLogger().error("Unknown StatusRuntimeException when executing call", e);
+            getLogger().error(
+                    "Stage '{}': Unknown StatusRuntimeException when executing call",
+                    getName(),
+                    e);
             System.exit(1);
         }
     }

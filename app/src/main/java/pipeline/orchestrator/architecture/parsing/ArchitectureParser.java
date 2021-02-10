@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.graph.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import pipeline.orchestrator.architecture.LinkInformation;
 import pipeline.orchestrator.architecture.StageInformation;
 import pipeline.orchestrator.verification.Verifications;
@@ -17,9 +19,11 @@ import java.util.Optional;
  */
 public class ArchitectureParser {
 
-    private ArchitectureParser() {}
+    private static final Logger LOGGER = LogManager.getLogger();
 
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
+
+    private ArchitectureParser() {}
 
     /**
      * Parses the system architecture from a yaml configuration file
@@ -36,6 +40,10 @@ public class ArchitectureParser {
 
         Preconditions.checkNotNull(configFile);
 
+        LOGGER.info(
+                "Parsing pipeline architecture from configuration file file '{}'",
+                configFile);
+
         ArchitectureInformationDto dto = YAML_MAPPER.readValue(
                 new File(configFile),
                 ArchitectureInformationDto.class);
@@ -43,6 +51,9 @@ public class ArchitectureParser {
         // Verify if necessary conditions for building
         // graph are satisfied
         ErrorReport report = Verifications.exhaustiveVerification(dto);
+
+        if (report.hasErrors())
+            LOGGER.warn("Errors detected in pipeline architecture configuration file");
 
         return new ParsingResult(
                 !report.hasErrors() ? ArchitectureGraphBuilder.build(dto) : null,
