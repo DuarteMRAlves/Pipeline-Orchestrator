@@ -2,13 +2,9 @@ stages:
   - name: "Stage 1"
     host: host1
     port: 1
-    method:
-      type: UNARY
   - name: "Stage 2"
     host: host2
     port: 2
-    method:
-      type: UNARY
 links:
   - source:
       field: fieldName

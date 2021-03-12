@@ -179,28 +179,18 @@ stages:
   - name: "Source"
     host: host-1
     port: 10001
-    method:
-      type: UNARY
   - name: "Logistic Regression"
     host: host-2
     port: 10002
-    method:
-      type: UNARY
   - name: "Decision Tree"
     host: host-3
     port: 10003
-    method:
-      type: UNARY
   - name: "SVM"
     host: host-4
     port: 10004
-    method:
-      type: UNARY
   - name: "Sink"
     host: host-5
     port: 10005
-    method:
-      type: UNARY
 ```
 
 ### Duplicate Source Messages
@@ -260,28 +250,18 @@ stages:
   - name: "Source"
     host: host-1
     port: 10001
-    method:
-      type: UNARY
   - name: "Logistic Regression"
     host: host-2
     port: 10002
-    method:
-      type: UNARY
   - name: "Decision Tree"
     host: host-3
     port: 10003
-    method:
-      type: UNARY
   - name: "SVM"
     host: host-4
     port: 10004
-    method:
-      type: UNARY
   - name: "Sink"
     host: host-5
     port: 10005
-    method:
-      type: UNARY
 links:
   - source:
       stage: "Source"

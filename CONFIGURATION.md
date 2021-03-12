@@ -29,19 +29,7 @@ Will serve as an identifier for the stage when defining the links between stages
 
 ### method
 
-Describes the method of the stage server. Is composed by the following variables:
-
- * ```name``` of the gRPC method to be executed. 
-   May be omitted if the server only has one method.
-
- * ```type``` of the gRPC method to be executed. 
-   Is mandatory and can be UNARY, CLIENT_STREAMING, SERVER_STREAMING or BIDI_STREAMING.
-
-```yaml
-method:
-  name: Method1
-  type: UNARY
-```
+```method``` specifies the name for the grpc method to execute. May be omitted if the server only has one method.
 
 ### Example
 
@@ -52,14 +40,10 @@ stages:
   - name: "Stage 1"
     host: host-1
     port: 10001
-    method:
-      name: Method1
-      type: UNARY
+    method: Method1
   - name: "Stage 2"
     host: host-2
     port: 10002
-    method:
-      type: SERVER_STREAMING
 ```
 
 ## Links Section
