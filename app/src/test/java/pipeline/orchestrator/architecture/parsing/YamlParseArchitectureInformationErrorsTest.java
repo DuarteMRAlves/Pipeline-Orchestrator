@@ -32,15 +32,11 @@ public class YamlParseArchitectureInformationErrorsTest {
                 "-  name: \"" + STAGE_NAME_1 + "\"\n" +
                 "   host: " + HOST_1 + "\n" +
                 "   port: " + PORT_1 + "\n" +
-                "   method:\n" +
-                "      name: \"" + METHOD_NAME_1 + "\"\n" +
-                "      type: UNARY\n" +
+                "   method: " + METHOD_NAME_1 + "\n" +
                 "-  name: \"" + STAGE_NAME_2 + "\"\n" +
                 "   host: " + HOST_2 + "\n" +
                 "   port: " + PORT_2 + "\n" +
-                "   method:\n" +
-                "      name: \"" + METHOD_NAME_2 + "\"\n" +
-                "      type: UNARY\n" +
+                "   method: " + METHOD_NAME_2 + "\n" +
                 "links:\n" +
                 "-  source:\n" +
                 "      stage: \"" + STAGE_NAME_1 + "\"\n" +
@@ -62,16 +58,14 @@ public class YamlParseArchitectureInformationErrorsTest {
         assertEquals(STAGE_NAME_1, stage1.getName());
         assertEquals(HOST_1, stage1.getHost());
         assertEquals(PORT_1, stage1.getPort());
-        assertEquals(METHOD_NAME_1, stage1.getMethod().getName());
-        assertEquals(MethodDescriptor.MethodType.UNARY, stage1.getMethod().getType());
+        assertEquals(METHOD_NAME_1, stage1.getMethod());
 
 
         StageInformationDto stage2 = stages.get(1);
         assertEquals(STAGE_NAME_2, stage2.getName());
         assertEquals(HOST_2, stage2.getHost());
         assertEquals(PORT_2, stage2.getPort());
-        assertEquals(METHOD_NAME_2, stage2.getMethod().getName());
-        assertEquals(MethodDescriptor.MethodType.UNARY, stage2.getMethod().getType());
+        assertEquals(METHOD_NAME_2, stage2.getMethod());
 
         List<LinkInformationDto> links = architectureInformation.getLinks();
         assertEquals(1, links.size());
@@ -135,15 +129,11 @@ public class YamlParseArchitectureInformationErrorsTest {
                 "-  name: \"" + STAGE_NAME_1 + "\"\n" +
                 "   host: " + HOST_1 + "\n" +
                 "   port: " + PORT_1 + "\n" +
-                "   method:\n" +
-                "      name: \"" + METHOD_NAME_1 + "\"\n" +
-                "      type: UNARY\n" +
+                "   method: " + METHOD_NAME_1 + "\"\n" +
                 "-  name: \"" + STAGE_NAME_2 + "\"\n" +
                 "   host: " + HOST_2 + "\n" +
                 "   port: " + PORT_2 + "\n" +
-                "   method:\n" +
-                "      name: \"" + METHOD_NAME_2 + "\"\n" +
-                "      type: UNARY\n";
+                "   method: " + METHOD_NAME_2 + "\"\n";
 
         ArchitectureInformationDto architectureInformation = MAPPER.readValue(
                 content,
@@ -165,15 +155,11 @@ public class YamlParseArchitectureInformationErrorsTest {
                 "-  name: \"" + STAGE_NAME_1 + "\"\n" +
                 "   host: " + HOST_1 + "\n" +
                 "   port: " + PORT_1 + "\n" +
-                "   method:\n" +
-                "      name: \"" + METHOD_NAME_1 + "\"\n" +
-                "      type: UNARY\n" +
+                "   method: " + METHOD_NAME_1 + "\"\n" +
                 "-  name: \"" + STAGE_NAME_2 + "\"\n" +
                 "   host: " + HOST_2 + "\n" +
                 "   port: " + PORT_2 + "\n" +
-                "   method:\n" +
-                "      name: \"" + METHOD_NAME_2 + "\"\n" +
-                "      type: UNARY\n" +
+                "   method: " + METHOD_NAME_2 + "\"\n" +
                 "links:\n";
 
         ArchitectureInformationDto architectureInformation = MAPPER.readValue(
@@ -195,15 +181,11 @@ public class YamlParseArchitectureInformationErrorsTest {
                 "stages:\n" +
                 "-  host: " + HOST_1 + "\n" +
                 "   port: " + PORT_1 + "\n" +
-                "   method:\n" +
-                "      name: \"" + METHOD_NAME_1 + "\"\n" +
-                "      type: UNARY\n" +
+                "   method: " + METHOD_NAME_1 + "\"\n" +
                 "-  name: \"" + STAGE_NAME_2 + "\"\n" +
                 "   host: " + HOST_2 + "\n" +
                 "   port: " + PORT_2 + "\n" +
-                "   method:\n" +
-                "      name: \"" + METHOD_NAME_2 + "\"\n" +
-                "      type: UNARY\n" +
+                "   method: " + METHOD_NAME_2 + "\"\n" +
                 "links:\n" +
                 "-  source:\n" +
                 "      stage: \"" + STAGE_NAME_1 + "\"\n" +
@@ -224,55 +206,17 @@ public class YamlParseArchitectureInformationErrorsTest {
     }
 
     @Test
-    public void missingMethodTypeTest() throws Exception {
-        String content =
-                "stages:\n" +
-                "-  name: \"" + STAGE_NAME_1 + "\"\n" +
-                "   host: " + HOST_1 + "\n" +
-                "   port: " + PORT_1 + "\n" +
-                "   method:\n" +
-                "      name: \"" + METHOD_NAME_1 + "\"\n" +
-                "      type: UNARY\n" +
-                "-  name: \"" + STAGE_NAME_2 + "\"\n" +
-                "   host: " + HOST_2 + "\n" +
-                "   port: " + PORT_2 + "\n" +
-                "   method:\n" +
-                "      name: \"" + METHOD_NAME_2 + "\"\n" +
-                "links:\n" +
-                "-  source:\n" +
-                "      stage: \"" + STAGE_NAME_1 + "\"\n" +
-                "   target:\n" +
-                "      stage: \"" + STAGE_NAME_2 + "\"\n";
-
-        ArchitectureInformationDto architectureInformation = MAPPER.readValue(
-                content,
-                ArchitectureInformationDto.class);
-
-        NotNullVerificationException exception = assertThrows(
-                NotNullVerificationException.class,
-                () -> Verifications.verify(architectureInformation));
-
-        assertEquals(
-                String.format(NotNullVerificationException.MESSAGE, "type"),
-                exception.getMessage());
-    }
-
-    @Test
     public void missingLinkTargetTest() throws Exception {
         String content =
                 "stages:\n" +
                 "-  name: \"" + STAGE_NAME_1 + "\"\n" +
                 "   host: " + HOST_1 + "\n" +
                 "   port: " + PORT_1 + "\n" +
-                "   method:\n" +
-                "      name: \"" + METHOD_NAME_1 + "\"\n" +
-                "      type: UNARY\n" +
+                "   method: " + METHOD_NAME_1 + "\"\n" +
                 "-  name: \"" + STAGE_NAME_2 + "\"\n" +
                 "   host: " + HOST_2 + "\n" +
                 "   port: " + PORT_2 + "\n" +
-                "   method:\n" +
-                "      name: \"" + METHOD_NAME_2 + "\"\n" +
-                "      type: UNARY\n" +
+                "   method: " + METHOD_NAME_2 + "\"\n" +
                 "links:\n" +
                 "-  source:\n" +
                 "      stage: \"" + STAGE_NAME_1 + "\"\n";
@@ -297,15 +241,11 @@ public class YamlParseArchitectureInformationErrorsTest {
                 "-  name: \"" + STAGE_NAME_1 + "\"\n" +
                 "   host: " + HOST_1 + "\n" +
                 "   port: " + PORT_1 + "\n" +
-                "   method:\n" +
-                "      name: \"" + METHOD_NAME_1 + "\"\n" +
-                "      type: UNARY\n" +
+                "   method: " + METHOD_NAME_1 + "\"\n" +
                 "-  name: \"" + STAGE_NAME_2 + "\"\n" +
                 "   host: " + HOST_2 + "\n" +
                 "   port: " + PORT_2 + "\n" +
-                "   method:\n" +
-                "      name: \"" + METHOD_NAME_2 + "\"\n" +
-                "      type: UNARY\n" +
+                "   method: " + METHOD_NAME_2 + "\"\n" +
                 "links:\n" +
                 "-  source:\n" +
                 "      stage: \"" + STAGE_NAME_1 + "\"\n" +

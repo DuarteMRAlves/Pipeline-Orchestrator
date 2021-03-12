@@ -22,9 +22,8 @@ public class StageInformationDto {
     @VerifyPositive
     private int port;
 
-    // Information regarding the method to invoke
-    @VerifyNotNull
-    private MethodInformationDto method;
+    // Name of the method to invoke
+    private String method;
 
     public String getName() {
         return name;
@@ -50,11 +49,11 @@ public class StageInformationDto {
         this.port = port;
     }
 
-    public MethodInformationDto getMethod() {
+    public String getMethod() {
         return method;
     }
 
-    public void setMethod(MethodInformationDto method) {
+    public void setMethod(String method) {
         this.method = method;
     }
 

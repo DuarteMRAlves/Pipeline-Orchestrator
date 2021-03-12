@@ -38,8 +38,7 @@ public class ArchitectureGraphBuilder {
                 .setName(dto.getName())
                 .setServiceHost(dto.getHost())
                 .setServicePort(dto.getPort())
-                .setMethodName(dto.getMethod().getName())
-                .setMethodType(dto.getMethod().getType())
+                .setMethodName(dto.getMethod())
                 .build();
     }
 

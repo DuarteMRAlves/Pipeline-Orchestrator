@@ -2,7 +2,6 @@ package pipeline.orchestrator.architecture.parsing;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import io.grpc.MethodDescriptor;
 import org.junit.Test;
 import pipeline.orchestrator.verification.Verifications;
 import pipeline.orchestrator.verification.exceptions.NotNullVerificationException;
@@ -30,9 +29,7 @@ public class YamlParseStageInformationTest {
                 "name: \"" + NAME + "\"\n" +
                 "host: " + HOST + "\n" +
                 "port: " + PORT + "\n" +
-                "method:\n" +
-                "  name: " + METHOD_NAME + "\n" +
-                "  type: " + METHOD_TYPE;
+                "method: " + METHOD_NAME + "\n";
 
         StageInformationDto stageInformation = MAPPER.readValue(
                 content,
@@ -43,18 +40,15 @@ public class YamlParseStageInformationTest {
         assertEquals(NAME, stageInformation.getName());
         assertEquals(HOST, stageInformation.getHost());
         assertEquals(PORT, stageInformation.getPort());
-        assertEquals(METHOD_NAME, stageInformation.getMethod().getName());
-        assertEquals(MethodDescriptor.MethodType.UNARY, stageInformation.getMethod().getType());
+        assertEquals(METHOD_NAME, stageInformation.getMethod());
     }
 
     @Test
     public void noMethodNameTest() throws Exception {
         String content =
                 "name: \"" + NAME + "\"\n" +
-                        "host: " + HOST + "\n" +
-                        "port: " + PORT + "\n" +
-                        "method:\n" +
-                        "  type: " + METHOD_TYPE;
+                "host: " + HOST + "\n" +
+                "port: " + PORT + "\n";
 
         StageInformationDto stageInformation = MAPPER.readValue(
                 content,
@@ -65,8 +59,7 @@ public class YamlParseStageInformationTest {
         assertEquals(NAME, stageInformation.getName());
         assertEquals(HOST, stageInformation.getHost());
         assertEquals(PORT, stageInformation.getPort());
-        assertNull(stageInformation.getMethod().getName());
-        assertEquals(MethodDescriptor.MethodType.UNARY, stageInformation.getMethod().getType());
+        assertNull(stageInformation.getMethod());
     }
 
     @Test
@@ -74,9 +67,7 @@ public class YamlParseStageInformationTest {
         String content =
                 "host: " + HOST + "\n" +
                 "port: " + PORT + "\n" +
-                "method:\n" +
-                "  name: " + METHOD_NAME + "\n" +
-                "  type: " + METHOD_TYPE;
+                "method: " + METHOD_NAME + "\n";
 
         StageInformationDto stageInformation = MAPPER.readValue(
                 content,
@@ -96,9 +87,7 @@ public class YamlParseStageInformationTest {
         String content =
                 "name: \"" + NAME + "\"\n" +
                 "port: " + PORT + "\n" +
-                "method:\n" +
-                "  name: " + METHOD_NAME + "\n" +
-                "  type: " + METHOD_TYPE;
+                "method: " + METHOD_NAME + "\n";
 
         StageInformationDto stageInformation = MAPPER.readValue(
                 content,
@@ -119,9 +108,7 @@ public class YamlParseStageInformationTest {
                 "name: \"" + NAME + "\"\n" +
                 "host: " + HOST + "\n" +
                 "port: " + 0 + "\n" +
-                "method:\n" +
-                "  name: " + METHOD_NAME + "\n" +
-                "  type: " + METHOD_TYPE;
+                "method: " +  METHOD_NAME + "\n";
 
         StageInformationDto stageInformation = MAPPER.readValue(
                 content,
@@ -133,48 +120,6 @@ public class YamlParseStageInformationTest {
 
         assertEquals(
                 String.format(PositiveVerificationException.MESSAGE, "port"),
-                exception.getMessage());
-    }
-
-    @Test
-    public void missingMethodTest() throws Exception {
-        String content =
-                "name: \"" + NAME + "\"\n" +
-                "host: " + HOST + "\n" +
-                "port: " + PORT + "\n";
-
-        StageInformationDto stageInformation = MAPPER.readValue(
-                content,
-                StageInformationDto.class);
-
-        NotNullVerificationException exception = assertThrows(
-                NotNullVerificationException.class,
-                () -> Verifications.verify(stageInformation));
-
-        assertEquals(
-                String.format(NotNullVerificationException.MESSAGE, "method"),
-                exception.getMessage());
-    }
-
-    @Test
-    public void missingMethodTypeTest() throws Exception {
-        String content =
-                "name: \"" + NAME + "\"\n" +
-                "host: " + HOST + "\n" +
-                "port: " + PORT + "\n" +
-                "method:\n" +
-                "  name: " + METHOD_NAME;
-
-        StageInformationDto stageInformation = MAPPER.readValue(
-                content,
-                StageInformationDto.class);
-
-        NotNullVerificationException exception = assertThrows(
-                NotNullVerificationException.class,
-                () -> Verifications.verify(stageInformation));
-
-        assertEquals(
-                String.format(NotNullVerificationException.MESSAGE, "type"),
                 exception.getMessage());
     }
 }

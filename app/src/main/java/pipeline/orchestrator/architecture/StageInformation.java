@@ -1,7 +1,6 @@
 package pipeline.orchestrator.architecture;
 
 import com.google.common.base.Preconditions;
-import io.grpc.MethodDescriptor.MethodType;
 
 import java.util.Optional;
 
@@ -15,7 +14,6 @@ public class StageInformation {
     private int servicePort = -1;
 
     private String methodName = null;
-    private MethodType methodType = null;
 
     /**
      * Specifies if the stage method should only be executed one time.
@@ -39,10 +37,6 @@ public class StageInformation {
 
     public Optional<String> getMethodName() {
         return Optional.ofNullable(methodName);
-    }
-
-    public MethodType getMethodType() {
-        return methodType;
     }
 
     public boolean getOneShot() {
@@ -87,11 +81,6 @@ public class StageInformation {
             return this;
         }
 
-        public Builder setMethodType(MethodType type) {
-            current.methodType = type;
-            return this;
-        }
-
         public Builder setOneShot(boolean oneShot) {
             current.oneShot = oneShot;
             return this;
@@ -106,7 +95,6 @@ public class StageInformation {
             Preconditions.checkState(current.name != null);
             Preconditions.checkState(current.serviceHost != null);
             Preconditions.checkState(current.servicePort != -1);
-            Preconditions.checkState(current.methodType != null);
             return copy(current);
         }
 
@@ -121,7 +109,6 @@ public class StageInformation {
             stageInformation.serviceHost = original.serviceHost;
             stageInformation.servicePort = original.servicePort;
             stageInformation.methodName = original.methodName;
-            stageInformation.methodType = original.methodType;
             stageInformation.oneShot = original.oneShot;
             return stageInformation;
         }

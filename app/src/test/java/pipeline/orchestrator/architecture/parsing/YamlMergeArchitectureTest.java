@@ -73,7 +73,6 @@ public class YamlMergeArchitectureTest {
         assertEquals(1, stage.getServicePort());
         assertTrue(stage.getMethodName().isPresent());
         assertEquals("Method 1", stage.getMethodName().get());
-        assertEquals(MethodDescriptor.MethodType.UNARY, stage.getMethodType());
 
         Set<StageInformation> succStages = graph.successors(stage);
         Set<StageInformation> predStages = graph.predecessors(stage);
@@ -91,7 +90,6 @@ public class YamlMergeArchitectureTest {
         assertEquals(2, stage.getServicePort());
         assertTrue(stage.getMethodName().isPresent());
         assertEquals("Method 2", stage.getMethodName().get());
-        assertEquals(MethodDescriptor.MethodType.CLIENT_STREAMING, stage.getMethodType());
 
         Set<StageInformation> succStages = graph.successors(stage);
         Set<StageInformation> predStages = graph.predecessors(stage);
@@ -109,7 +107,6 @@ public class YamlMergeArchitectureTest {
         assertEquals("Host3", stage.getServiceHost());
         assertEquals(3, stage.getServicePort());
         assertTrue(stage.getMethodName().isEmpty());
-        assertEquals(MethodDescriptor.MethodType.UNARY, stage.getMethodType());
 
         Set<StageInformation> succStages = graph.successors(stage);
         Set<StageInformation> predStages = graph.predecessors(stage);
@@ -126,7 +123,6 @@ public class YamlMergeArchitectureTest {
         assertEquals("Host4", stage.getServiceHost());
         assertEquals(4, stage.getServicePort());
         assertTrue(stage.getMethodName().isEmpty());
-        assertEquals(MethodDescriptor.MethodType.SERVER_STREAMING, stage.getMethodType());
 
         Set<StageInformation> succStages = graph.successors(stage);
         Set<StageInformation> predStages = graph.predecessors(stage);
