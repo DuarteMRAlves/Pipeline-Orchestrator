@@ -1,4 +1,4 @@
-package pipeline.orchestrator.grpc;
+package pipeline.orchestrator.grpc.utils;
 
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;

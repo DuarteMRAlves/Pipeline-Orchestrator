@@ -7,6 +7,7 @@ import io.grpc.stub.StreamObserver;
 import org.junit.Test;
 import pipeline.orchestrator.common.TestWithBindableService;
 import pipeline.orchestrator.grpc.messages.Data;
+import pipeline.orchestrator.grpc.services.AddingServiceGrpc;
 
 import java.util.ArrayList;
 import java.util.List;

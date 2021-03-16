@@ -11,7 +11,7 @@ import pipeline.orchestrator.execution.inputs.StageInputStream;
 import pipeline.orchestrator.execution.outputs.StageOutputStream;
 import pipeline.orchestrator.execution.stages.events.UnavailableServiceEvent;
 import pipeline.orchestrator.grpc.methods.FullMethodDescription;
-import pipeline.orchestrator.grpc.StatusRuntimeExceptions;
+import pipeline.orchestrator.grpc.utils.StatusRuntimeExceptions;
 import pipeline.orchestrator.grpc.methods.AsyncServerStreamingMethodInvoker;
 
 import java.util.concurrent.CountDownLatch;

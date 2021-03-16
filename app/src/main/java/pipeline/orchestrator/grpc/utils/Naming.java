@@ -1,4 +1,4 @@
-package pipeline.orchestrator.grpc;
+package pipeline.orchestrator.grpc.utils;
 
 /**
  * Static helper class for managing naming on grpc services

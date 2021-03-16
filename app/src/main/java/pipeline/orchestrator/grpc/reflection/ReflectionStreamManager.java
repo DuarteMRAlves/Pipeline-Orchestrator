@@ -11,6 +11,7 @@ import io.grpc.stub.StreamObserver;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -112,9 +113,9 @@ public class ReflectionStreamManager {
         }
 
         private void init() {
+            executor.waitingResponses = new ArrayBlockingQueue<>(executor.maxSimultaneousRequests);
             executor.stub = ServerReflectionGrpc.newStub(executor.channel);
             executor.requestStreamObserver = executor.stub.serverReflectionInfo(executor.new ExecutorStreamObserver());
-            executor.waitingResponses = new ArrayBlockingQueue<>(executor.maxSimultaneousRequests);
         }
     }
 }

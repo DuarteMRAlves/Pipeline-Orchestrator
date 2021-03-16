@@ -1,7 +1,7 @@
 package pipeline.orchestrator.grpc.reflection;
 
 import io.grpc.StatusRuntimeException;
-import pipeline.orchestrator.grpc.StatusRuntimeExceptions;
+import pipeline.orchestrator.grpc.utils.StatusRuntimeExceptions;
 
 /**
  * Exception to signal that an error happened when

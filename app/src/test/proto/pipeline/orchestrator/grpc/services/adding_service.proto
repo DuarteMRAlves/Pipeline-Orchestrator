@@ -5,7 +5,7 @@ option java_package = "pipeline.orchestrator.grpc.methods";
 
 import "pipeline/orchestrator/grpc/messages/message.proto";
 
-service AddingService {
-    rpc Add (Data) returns (Data);
-    rpc AddServerStreaming (Data) returns (stream Data);
+service SubtractingService {
+    rpc Subtract (Data) returns (Data);
+    rpc SubtractServerStreaming (Data) returns (stream Data);
 }

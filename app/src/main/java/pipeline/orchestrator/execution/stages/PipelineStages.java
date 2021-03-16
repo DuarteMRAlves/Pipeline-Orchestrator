@@ -10,9 +10,9 @@ import org.apache.logging.log4j.Logger;
 import pipeline.orchestrator.architecture.LinkInformation;
 import pipeline.orchestrator.architecture.StageInformation;
 import pipeline.orchestrator.execution.Link;
-import pipeline.orchestrator.grpc.UnableToDiscoverMethodException;
+import pipeline.orchestrator.reflection.UnableToDiscoverMethodException;
 import pipeline.orchestrator.grpc.methods.FullMethodDescription;
-import pipeline.orchestrator.grpc.ServerMethodDiscovery;
+import pipeline.orchestrator.reflection.ServerMethodDiscovery;
 
 import java.util.Optional;
 import java.util.concurrent.Executors;

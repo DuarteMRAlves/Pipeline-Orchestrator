@@ -27,15 +27,19 @@ public abstract class TestWithBindableService {
      * Calls the function {@link TestWithBindableService#setUpAfterServerImpl(ManagedChannel)}
      * for the child class to access the channel
      * that contacts the server
-     * @param bindableService service to bind to the server
+     * @param bindableServices service to bind to the server
      * @throws IOException if the created server is unable to bind
      */
-    protected final void setUpServerImpl(BindableService bindableService)
+    protected final void setUpServerImpl(BindableService... bindableServices)
             throws IOException {
         // Generate a unique in-process server name.
         String serverName = InProcessServerBuilder.generateName();
         // Create server and channel with automatic cleanup
-        grpcCleanup.register(InProcessServerBuilder.forName(serverName).addService(bindableService).directExecutor().build().start());
+        InProcessServerBuilder builder = InProcessServerBuilder.forName(serverName);
+        for (BindableService service : bindableServices) {
+            builder.addService(service);
+        }
+        grpcCleanup.register(builder.directExecutor().build().start());
         ManagedChannel channel = grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
         setUpAfterServerImpl(channel);
     }
