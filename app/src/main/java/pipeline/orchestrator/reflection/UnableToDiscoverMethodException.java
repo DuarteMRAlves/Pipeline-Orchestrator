@@ -2,7 +2,7 @@ package pipeline.orchestrator.reflection;
 
 import com.google.protobuf.Descriptors;
 import pipeline.orchestrator.grpc.reflection.UnableToListServicesException;
-import pipeline.orchestrator.grpc.reflection.UnableToLookupService;
+import pipeline.orchestrator.grpc.reflection.UnableToLookupServiceException;
 
 public class UnableToDiscoverMethodException extends Exception {
 
@@ -39,7 +39,7 @@ public class UnableToDiscoverMethodException extends Exception {
 
     static UnableToDiscoverMethodException fromUnableToLookupServiceException(
             String authority,
-            UnableToLookupService exception) {
+            UnableToLookupServiceException exception) {
         return new UnableToDiscoverMethodException(
                 String.format("Unable to lookup service at %s", authority),
                 exception);

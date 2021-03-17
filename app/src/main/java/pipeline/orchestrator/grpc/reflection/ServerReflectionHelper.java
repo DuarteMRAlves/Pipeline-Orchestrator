@@ -44,21 +44,26 @@ public class ServerReflectionHelper {
             throws UnableToListServicesException, InterruptedException {
 
         ReflectionStreamManager manager = newReflectionStreamManager();
-        ServerReflectionRequest request =
-                ReflectionRequestFactory.listServicesRequest(host);
+        try {
+            ServerReflectionRequest request =
+                    ReflectionRequestFactory.listServicesRequest(host);
 
-        ServerReflectionResponse response
-                = Futures.waitComputation(manager.submit(request),
-                UnableToListServicesException::new);
-        manager.complete();
+            ServerReflectionResponse response
+                    = Futures.waitComputation(manager.submit(request),
+                    UnableToListServicesException::new);
 
-        Conditions.checkState(
-                response.getMessageResponseCase() == LIST_SERVICES_RESPONSE,
-                UnableToListServicesException::new);
+            Conditions.checkState(
+                    response.getMessageResponseCase() == LIST_SERVICES_RESPONSE,
+                    UnableToListServicesException::new);
 
-        return response.getListServicesResponse().getServiceList().stream()
-                .map(ServiceResponse::getName)
-                .collect(ImmutableSet.toImmutableSet());
+            return response.getListServicesResponse().getServiceList().stream()
+                    .map(ServiceResponse::getName)
+                    .collect(ImmutableSet.toImmutableSet());
+        }
+        finally {
+            // Complete to close connection so that channel can be shutdown
+            manager.complete();
+        }
     }
 
     /**
@@ -67,21 +72,23 @@ public class ServerReflectionHelper {
      * @param serviceName the name of the service
      * @return a set of file descriptors with all the necessary
      *         descriptors for the methods and messages of the service
-     * @throws UnableToLookupService if an error occurs
+     * @throws UnableToLookupServiceException if an error occurs
      * @throws InterruptedException if the thread is interrupted
      *                              while waiting for a reply from the server
      */
     public FileDescriptorSet lookupService(String serviceName)
-            throws UnableToLookupService, InterruptedException {
+            throws UnableToLookupServiceException, InterruptedException {
 
         ReflectionStreamManager manager = newReflectionStreamManager();
-
-        LookupServiceHelper helper = new LookupServiceHelper(serviceName, manager);
-        Iterable<FileDescriptorProto> fileDescriptorProtos = helper.lookupService();
-
-        manager.complete();
-
-        return DescriptorProtos.buildSetFromProtos(fileDescriptorProtos);
+        try {
+            LookupServiceHelper helper = new LookupServiceHelper(serviceName, manager);
+            Iterable<FileDescriptorProto> fileDescriptorProtos = helper.lookupService();
+            return DescriptorProtos.buildSetFromProtos(fileDescriptorProtos);
+        }
+        finally {
+            // Complete to close connection so that channel can be shutdown
+            manager.complete();
+        }
     }
 
     public static Builder newBuilder() {
@@ -138,17 +145,16 @@ public class ServerReflectionHelper {
         }
 
         private Iterable<FileDescriptorProto> lookupService()
-                throws UnableToLookupService, InterruptedException {
+                throws UnableToLookupServiceException, InterruptedException {
             pendingRequests.add(ReflectionRequestFactory.fileBySymbolRequest(host, serviceName));
 
             while (!pendingRequests.isEmpty()) {
                 ServerReflectionResponse response =
                         Futures.waitComputation(manager.submit(pendingRequests.poll()),
-                                UnableToLookupService::new);
-
+                                UnableToLookupServiceException::new);
                 Conditions.checkState(
                         response.getMessageResponseCase() == FILE_DESCRIPTOR_RESPONSE,
-                        UnableToLookupService::new);
+                        UnableToLookupServiceException::new);
 
                 List<ByteString> fileDescriptorsBytes =
                         response.getFileDescriptorResponse().getFileDescriptorProtoList();
