@@ -59,6 +59,20 @@ public class FindOnlyServiceTest extends TestWithBindableService {
                 exception.getMessage());
     }
 
+    @Test
+    public void testNoReflection() throws Exception {
+        setUpServerImpl(
+                new AddingServiceGrpc.AddingServiceImplBase() {}
+        );
+
+        UnableToDiscoverMethodException exception =
+                assertThrows(UnableToDiscoverMethodException.class, () -> serviceFinder.findOnlyService(channel));
+
+        assertEquals(
+                "Unable to discover method: Unable to list services at localhost",
+                exception.getMessage());
+    }
+
     @Override
     protected void setUpAfterServerImpl(ManagedChannel channel) {
         this.channel = channel;

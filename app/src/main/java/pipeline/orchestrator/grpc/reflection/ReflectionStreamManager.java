@@ -2,16 +2,17 @@ package pipeline.orchestrator.grpc.reflection;
 
 import com.google.common.util.concurrent.SettableFuture;
 import io.grpc.Channel;
+import io.grpc.StatusRuntimeException;
 import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
 import io.grpc.reflection.v1alpha.ServerReflectionGrpc.ServerReflectionStub;
 import io.grpc.reflection.v1alpha.ServerReflectionRequest;
 import io.grpc.reflection.v1alpha.ServerReflectionResponse;
 import io.grpc.stub.StreamObserver;
+import pipeline.orchestrator.grpc.utils.StatusRuntimeExceptions;
 
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -34,6 +35,11 @@ public class ReflectionStreamManager {
     private int simultaneousRequests = 0;
     private Queue<SettableFuture<ServerReflectionResponse>> waitingResponses;
 
+    // Save unimplemented exception to set the future for all requests
+    private StatusRuntimeException unimplementedException = null;
+
+    private final Object lock = new Object();
+
     private ReflectionStreamManager() {}
 
     /**
@@ -42,13 +48,21 @@ public class ReflectionStreamManager {
      * @return future with the response to the given request
      */
     public Future<ServerReflectionResponse> submit(ServerReflectionRequest request) {
-        checkState(simultaneousRequests < maxSimultaneousRequests);
-
         SettableFuture<ServerReflectionResponse> future = SettableFuture.create();
-        waitingResponses.add(future);
-        simultaneousRequests++;
-        this.requestStreamObserver.onNext(request);
-
+        // The service is not implemented
+        if (isReflectionServiceImplemented()) {
+            synchronized (lock) {
+                checkState(simultaneousRequests < maxSimultaneousRequests);
+                waitingResponses.add(future);
+                simultaneousRequests++;
+            }
+            this.requestStreamObserver.onNext(request);
+        }
+        else {
+            synchronized (lock) {
+                future.setException(unimplementedException);
+            }
+        }
         return future;
     }
 
@@ -56,6 +70,12 @@ public class ReflectionStreamManager {
      * Ends the stream of requests
      */
     public void complete() { this.requestStreamObserver.onCompleted(); }
+
+    private boolean isReflectionServiceImplemented() {
+        synchronized (lock) {
+            return unimplementedException == null;
+        }
+    }
 
     public static ReflectionStreamManager.Builder newBuilder() {
         return new ReflectionStreamManager.Builder();
@@ -65,17 +85,28 @@ public class ReflectionStreamManager {
 
         @Override
         public void onNext(ServerReflectionResponse response) {
-            checkState(simultaneousRequests > 0);
+            SettableFuture<ServerReflectionResponse> future;
+            synchronized (lock) {
+                checkState(simultaneousRequests > 0);
+                simultaneousRequests--;
+                future = waitingResponses.poll();
+            }
 
-            SettableFuture<ServerReflectionResponse> future = waitingResponses.poll();
             assert future != null; // Should never happen
             future.set(response);
         }
 
         @Override
         public void onError(Throwable t) {
-            waitingResponses.forEach(future -> future.setException(t));
-            waitingResponses.clear();
+            synchronized (lock) {
+                if (t instanceof StatusRuntimeException &&
+                    StatusRuntimeExceptions.isUnimplemented((StatusRuntimeException) t)) {
+                    unimplementedException = (StatusRuntimeException) t;
+                }
+                simultaneousRequests = 0;
+                waitingResponses.forEach(future -> future.setException(t));
+                waitingResponses.clear();
+            }
         }
 
         @Override
