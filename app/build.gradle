@@ -27,6 +27,7 @@ def grpcVersion = "1.32.2"
 def protobufVersion = "3.12.0"
 def jacksonVersion = "2.12.0"
 def log4jVersion = "2.12.1"
+
 repositories {
     // Use JCenter for resolving dependencies.
     jcenter()
@@ -81,6 +82,10 @@ sourceSets {
             srcDirs "build/generated/source/proto/main/java"
         }
     }
+    integration {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
 }
 
 protobuf {
@@ -98,6 +103,22 @@ protobuf {
         }
     }
 }
+
+configurations {
+    integrationImplementation.extendsFrom testImplementation
+    integrationRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+task integrationTest(type: Test) {
+    description = 'Run integration tests.'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.integration.output.classesDirs
+    classpath = sourceSets.integration.runtimeClasspath
+    shouldRunAfter test
+}
+
+check.dependsOn integrationTest
 
 task buildDependencies(type: Copy) {
     from configurations.runtimeClasspath
@@ -140,7 +161,22 @@ test {
 
     afterSuite { desc, result ->
         if (!desc.parent) { // will match the outermost suite
-            def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+            def output = "Unit Tests Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+            def startItem = '|  ', endItem = '  |'
+            def repeatLength = startItem.length() + output.length() + endItem.length()
+            println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
+        }
+    }
+}
+
+integrationTest {
+
+    // show standard out and standard error of the test JVM(s) on the console
+    // testLogging.showStandardStreams = true
+
+    afterSuite { desc, result ->
+        if (!desc.parent) { // will match the outermost suite
+            def output = "Integration Tests Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
             def startItem = '|  ', endItem = '  |'
             def repeatLength = startItem.length() + output.length() + endItem.length()
             println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
