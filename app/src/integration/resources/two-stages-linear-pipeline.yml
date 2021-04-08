@@ -1,0 +1,12 @@
+stages:
+  - name: "Source"
+    host: localhost
+    port: 50051
+  - name: "Sink"
+    host: localhost
+    port: 50052
+links:
+  - source:
+      stage: "Source"
+    target:
+      stage: "Sink"

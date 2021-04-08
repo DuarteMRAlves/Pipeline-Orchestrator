@@ -83,8 +83,24 @@ sourceSets {
         }
     }
     integration {
+        proto {
+            srcDir 'src/integration/proto'
+        }
+        java {
+            srcDir 'src/integration/java'
+        }
+        resources {
+            srcDir 'src/integration/resources'
+        }
         compileClasspath += sourceSets.main.output
         runtimeClasspath += sourceSets.main.output
+    }
+}
+
+idea {
+    module {
+        testSourceDirs += project.sourceSets.integration.java.srcDirs
+        testSourceDirs += project.sourceSets.integration.resources.srcDirs
     }
 }
 
