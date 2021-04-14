@@ -19,9 +19,15 @@ public class App {
 
     private static final Logger LOGGER = LogManager.getLogger(App.class);
 
-    public static void main(String[] args) {
+    private ExecutionOrchestrator orchestrator = null;
 
-        Optional<Configuration> optionalConfiguration = new ConfigurationManager().getConfiguration();
+    public static void main(String[] args) {
+        new App().run(args);
+    }
+
+    public void run(String... args) {
+        Optional<Configuration> optionalConfiguration =
+                new ConfigurationManager().getConfiguration(args);
         if (optionalConfiguration.isEmpty()) {
             LOGGER.error("Missing configuration file");
             return;
@@ -41,11 +47,19 @@ public class App {
                 LOGGER.error(report.summarize());
             return;
         }
-        ValueGraph<StageInformation, LinkInformation> architecture = result.getArchitecture();
-        new ExecutionOrchestrator(architecture).run();
+        ValueGraph<StageInformation, LinkInformation> architecture =
+                result.getArchitecture();
+        orchestrator = new ExecutionOrchestrator(architecture);
+        orchestrator.run();
     }
 
-    private static void handleIOException(Configuration configuration, IOException exception) {
+    public void finish() {
+        if (orchestrator != null) {
+            orchestrator.finish();
+        }
+    }
+
+    private void handleIOException(Configuration configuration, IOException exception) {
         if (exception instanceof FileNotFoundException) {
             LOGGER.error("File not found: '{}'", configuration.getConfigFile());
         }

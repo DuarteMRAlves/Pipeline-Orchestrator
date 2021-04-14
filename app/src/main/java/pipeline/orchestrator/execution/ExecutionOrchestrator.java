@@ -22,6 +22,7 @@ public class ExecutionOrchestrator implements Runnable {
 
     private static final Logger LOGGER = LogManager.getLogger(ExecutionOrchestrator.class);
 
+    private boolean running = false;
     private final ImmutableMap<String, AbstractPipelineStage> executionStages;
 
     public ExecutionOrchestrator(
@@ -58,6 +59,23 @@ public class ExecutionOrchestrator implements Runnable {
     public void run() {
         LOGGER.info("Starting Pipeline Execution");
         new StagesMonitor(executionStages);
-        executionStages.values().forEach(pipelineStage -> new Thread(pipelineStage).start());
+        executionStages.values().forEach(
+                pipelineStage -> new Thread(pipelineStage).start());
+        setRunning(true);
+    }
+
+    public void finish() {
+        if (isRunning()) {
+            executionStages.values().forEach(AbstractPipelineStage::finish);
+            setRunning(false);
+        }
+    }
+
+    private synchronized boolean isRunning() {
+        return running;
+    }
+
+    private synchronized void setRunning(boolean running) {
+        this.running = running;
     }
 }
