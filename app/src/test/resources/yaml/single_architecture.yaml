@@ -2,6 +2,7 @@ stages:
   - name: "Stage 1"
     host: Host1
     port: 1
+    service: "Service 1"
     method: "Method 1"
   - name: "Stage 2"
     host: Host2
@@ -13,6 +14,7 @@ stages:
   - name: "Stage 4"
     host: Host4
     port: 4
+    service: "Service 4"
 links:
   - source:
       stage: "Stage 1"

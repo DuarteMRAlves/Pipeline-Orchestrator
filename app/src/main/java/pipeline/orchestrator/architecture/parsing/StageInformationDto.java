@@ -22,7 +22,10 @@ public class StageInformationDto {
     @VerifyPositive
     private int port;
 
-    // Name of the method to invoke
+    // Name of the grpc service to invoke
+    private String service;
+
+    // Name of the grpc method to invoke
     private String method;
 
     public String getName() {
@@ -49,6 +52,14 @@ public class StageInformationDto {
         this.port = port;
     }
 
+    public String getService() {
+        return service;
+    }
+
+    public void setService(String service) {
+        this.service = service;
+    }
+
     public String getMethod() {
         return method;
     }
@@ -63,6 +74,7 @@ public class StageInformationDto {
                 "name='" + name + '\'' +
                 ", host='" + host + '\'' +
                 ", port=" + port +
+                ", service='" + service + '\'' +
                 ", method=" + method +
                 '}';
     }

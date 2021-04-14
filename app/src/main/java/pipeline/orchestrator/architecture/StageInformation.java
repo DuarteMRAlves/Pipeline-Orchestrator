@@ -13,6 +13,7 @@ public class StageInformation {
     private String serviceHost = null;
     private int servicePort = -1;
 
+    private String serviceName = null;
     private String methodName = null;
 
     /**
@@ -35,6 +36,10 @@ public class StageInformation {
         return servicePort;
     }
 
+    public Optional<String> getServiceName() {
+        return Optional.ofNullable(serviceName);
+    }
+
     public Optional<String> getMethodName() {
         return Optional.ofNullable(methodName);
     }
@@ -49,6 +54,7 @@ public class StageInformation {
                 "name='" + name + '\'' +
                 ", serviceHost='" + serviceHost + '\'' +
                 ", servicePort=" + servicePort +
+                ", serviceName='" + serviceName + '\'' +
                 ", methodName='" + methodName + '\'' +
                 ", oneShot=" + oneShot +
                 '}';
@@ -73,6 +79,11 @@ public class StageInformation {
 
         public Builder setServicePort(int servicePort) {
             current.servicePort = servicePort;
+            return this;
+        }
+
+        public Builder setServiceName(String name) {
+            current.serviceName = name;
             return this;
         }
 
@@ -108,6 +119,7 @@ public class StageInformation {
             stageInformation.name = original.name;
             stageInformation.serviceHost = original.serviceHost;
             stageInformation.servicePort = original.servicePort;
+            stageInformation.serviceName = original.serviceName;
             stageInformation.methodName = original.methodName;
             stageInformation.oneShot = original.oneShot;
             return stageInformation;

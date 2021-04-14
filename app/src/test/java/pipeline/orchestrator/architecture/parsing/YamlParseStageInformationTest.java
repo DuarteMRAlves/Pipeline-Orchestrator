@@ -17,9 +17,9 @@ public class YamlParseStageInformationTest {
 
     private static final int PORT = 1;
 
-    private static final String METHOD_NAME = "Method";
+    private static final String SERVICE_NAME = "Service";
 
-    private static final String METHOD_TYPE = "UNARY";
+    private static final String METHOD_NAME = "Method";
 
     private static final ObjectMapper MAPPER = new ObjectMapper(new YAMLFactory());
 
@@ -29,6 +29,7 @@ public class YamlParseStageInformationTest {
                 "name: \"" + NAME + "\"\n" +
                 "host: " + HOST + "\n" +
                 "port: " + PORT + "\n" +
+                "service: " + SERVICE_NAME + "\n" +
                 "method: " + METHOD_NAME + "\n";
 
         StageInformationDto stageInformation = MAPPER.readValue(
@@ -40,6 +41,7 @@ public class YamlParseStageInformationTest {
         assertEquals(NAME, stageInformation.getName());
         assertEquals(HOST, stageInformation.getHost());
         assertEquals(PORT, stageInformation.getPort());
+        assertEquals(SERVICE_NAME, stageInformation.getService());
         assertEquals(METHOD_NAME, stageInformation.getMethod());
     }
 
@@ -59,6 +61,7 @@ public class YamlParseStageInformationTest {
         assertEquals(NAME, stageInformation.getName());
         assertEquals(HOST, stageInformation.getHost());
         assertEquals(PORT, stageInformation.getPort());
+        assertNull(stageInformation.getService());
         assertNull(stageInformation.getMethod());
     }
 
@@ -67,6 +70,7 @@ public class YamlParseStageInformationTest {
         String content =
                 "host: " + HOST + "\n" +
                 "port: " + PORT + "\n" +
+                "service: " + SERVICE_NAME + "\n" +
                 "method: " + METHOD_NAME + "\n";
 
         StageInformationDto stageInformation = MAPPER.readValue(
@@ -87,6 +91,7 @@ public class YamlParseStageInformationTest {
         String content =
                 "name: \"" + NAME + "\"\n" +
                 "port: " + PORT + "\n" +
+                "service: " + SERVICE_NAME + "\n" +
                 "method: " + METHOD_NAME + "\n";
 
         StageInformationDto stageInformation = MAPPER.readValue(
@@ -108,6 +113,7 @@ public class YamlParseStageInformationTest {
                 "name: \"" + NAME + "\"\n" +
                 "host: " + HOST + "\n" +
                 "port: " + 0 + "\n" +
+                "service: " + SERVICE_NAME + "\n" +
                 "method: " +  METHOD_NAME + "\n";
 
         StageInformationDto stageInformation = MAPPER.readValue(
