@@ -1,0 +1,15 @@
+stages:
+  - name: "Source"
+    host: localhost
+    port: 50051
+    service: "SourceService"
+  - name: "Sink"
+    host: localhost
+    port: 50051
+    service: "SinkService"
+    method: "Collect"
+links:
+  - source:
+      stage: "Source"
+    target:
+      stage: "Sink"

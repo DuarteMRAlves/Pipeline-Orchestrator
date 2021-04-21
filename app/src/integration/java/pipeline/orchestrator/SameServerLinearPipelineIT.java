@@ -15,19 +15,19 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertTrue;
 
-public class TwoStagesLinearPipelineIT extends BasePipelineIT {
+public class SameServerLinearPipelineIT extends BasePipelineIT {
 
     private static final String CONFIG_FILE =
-            "src/integration/resources/two-stages-linear-pipeline.yml";
-    private static final int NUM_SERVICES = 1;
+            "src/integration/resources/same-server-linear-pipeline.yml";
+
+    private static final int NUM_SERVICES_TO_WAIT = 1;
     private static final int NUM_MESSAGES = 3;
-    private static final int SOURCE_PORT = 50051;
-    private static final int SINK_PORT = 50052;
+    private static final int SERVER_PORT = 50051;
 
     @Test
-    public void testLinearPipeline() throws Exception {
+    public void testSameServerPipeline() throws Exception {
         List<Data> sinkReceived = new ArrayList<>();
-        CountDownLatch countDownLatch = new CountDownLatch(NUM_SERVICES);
+        CountDownLatch countDownLatch = new CountDownLatch(NUM_SERVICES_TO_WAIT);
 
         SinkService sinkService = new SinkService(
                 NUM_MESSAGES,
@@ -35,8 +35,7 @@ public class TwoStagesLinearPipelineIT extends BasePipelineIT {
                 countDownLatch);
 
         ServerRunner runner = startRunnerForServers(
-                buildServer(SOURCE_PORT, new SourceService()),
-                buildServer(SINK_PORT, sinkService));
+                buildServer(SERVER_PORT, new SourceService(), sinkService));
 
         App app = new App();
 

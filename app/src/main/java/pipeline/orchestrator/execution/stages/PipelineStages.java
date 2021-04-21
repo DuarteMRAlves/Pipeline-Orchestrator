@@ -10,9 +10,10 @@ import org.apache.logging.log4j.Logger;
 import pipeline.orchestrator.architecture.LinkInformation;
 import pipeline.orchestrator.architecture.StageInformation;
 import pipeline.orchestrator.execution.Link;
-import pipeline.orchestrator.reflection.UnableToDiscoverMethodException;
 import pipeline.orchestrator.grpc.methods.FullMethodDescription;
+import pipeline.orchestrator.reflection.MethodSearchInformation;
 import pipeline.orchestrator.reflection.ServerMethodDiscovery;
+import pipeline.orchestrator.reflection.UnableToDiscoverMethodException;
 
 import java.util.Optional;
 import java.util.concurrent.Executors;
@@ -84,37 +85,32 @@ public class PipelineStages {
                         stageInformation.getServicePort())
                 .usePlaintext().build();
 
-        Optional<FullMethodDescription> fullMethodDesc = stageInformation.getMethodName()
-                // if method name is present then get method description with name
-                .flatMap(name -> getFullMethodDescription(channel, name))
-                // else get without name
-                .or(() -> getFullMethodDescription(channel));
+        Optional<FullMethodDescription> fullMethodDesc =
+                getFullMethodDescription(channel, stageInformation);
 
         return fullMethodDesc.map(desc -> getPipelineStage(stageInformation, channel, desc))
                 .orElseThrow(() -> new IllegalStateException(
                         String.format("Unable to build pipeline stage for %s", channel.authority())));
     }
 
-
     private static Optional<FullMethodDescription> getFullMethodDescription(
             Channel channel,
-            String methodName) {
+            StageInformation stageInformation
+    ) {
+        MethodSearchInformation.Builder builder =
+                MethodSearchInformation.newBuilder();
+
+        stageInformation.getServiceName().ifPresent(builder::setServiceName);
+        stageInformation.getMethodName().ifPresent(builder::setMethodName);
 
         try {
-            return Optional.of(ServerMethodDiscovery.discoverSingleMethod(channel, methodName));
+            return Optional.of(ServerMethodDiscovery.discoverMethod(
+                    channel,
+                    builder.build()));
         } catch (UnableToDiscoverMethodException exception) {
-            LOGGER.warn("Unable get method description for {}", channel.authority(), exception);
-            return Optional.empty();
-        }
-    }
-
-    private static Optional<FullMethodDescription> getFullMethodDescription(
-            Channel channel) {
-
-        try {
-            return Optional.of(ServerMethodDiscovery.discoverSingleMethod(channel));
-        } catch (UnableToDiscoverMethodException exception) {
-            LOGGER.warn("Unable get method description for {}", channel.authority(), exception);
+            LOGGER.warn("Unable get method description for {}",
+                        channel.authority(),
+                        exception);
             return Optional.empty();
         }
     }

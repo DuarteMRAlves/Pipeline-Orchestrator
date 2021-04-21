@@ -136,6 +136,19 @@ task integrationTest(type: Test) {
 
 check.dependsOn integrationTest
 
+processResources {
+    dependsOn 'extractProto'
+}
+
+processTestResources {
+    dependsOn 'extractTestProto'
+}
+
+processIntegrationResources {
+    dependsOn 'extractIntegrationProto'
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
 task buildDependencies(type: Copy) {
     from configurations.runtimeClasspath
     into 'build/libs'
@@ -154,7 +167,7 @@ abstract class DockerTask extends Exec {
             description='Configures the image tag for the docker build')
     void setTag(String tag) {
         this.tag = tag
-        commandLine 'docker', 'build', '-t', 'orchestrator:' + tag, '.'
+        commandLine 'docker', 'build', '-t', 'sipgisr/grpc-orchestrator:' + tag, '.'
     }
 }
 

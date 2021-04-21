@@ -11,7 +11,6 @@ public class SourceService extends SourceServiceGrpc.SourceServiceImplBase {
 
     @Override
     public void gen(Empty request, StreamObserver<Data> responseObserver) {
-        System.out.println("Generating request");
         responseObserver.onNext(Data.newBuilder().setNum(counter++).build());
         responseObserver.onCompleted();
     }
