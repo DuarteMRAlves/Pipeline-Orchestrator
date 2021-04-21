@@ -27,9 +27,15 @@ Will serve as an identifier for the stage when defining the links between stages
 
 ```port``` specifies the port where the gRPC server with the stage is running.
 
+### service
+
+```service``` specifies the name of the grpc service where the method to execute should be searched.
+May be omitted if the grpc server only has one service.
+
 ### method
 
-```method``` specifies the name for the grpc method to execute. May be omitted if the server only has one method.
+```method``` specifies the name for the grpc method of the selected service that should be executed. 
+May be omitted if the grpc service only has one method.
 
 ### Example
 
@@ -40,10 +46,14 @@ stages:
   - name: "Stage 1"
     host: host-1
     port: 10001
+    # The server should only have one service with the method Method1.
     method: Method1
   - name: "Stage 2"
     host: host-2
     port: 10002
+    # The server may have multiple services. 
+    # Service2 can only have one method that will be executed.
+    service: Service2
 ```
 
 ## Links Section
