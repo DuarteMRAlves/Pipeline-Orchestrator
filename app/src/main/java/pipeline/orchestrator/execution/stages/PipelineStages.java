@@ -162,7 +162,7 @@ public class PipelineStages {
     }
 
     private static boolean isOneShot(StageInformation stageInformation) {
-        return stageInformation.getOneShot();
+        return stageInformation.isOneShot();
     }
 
     private static void logBuildStage(StageInformation stageInformation) {

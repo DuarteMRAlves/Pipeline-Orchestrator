@@ -8,10 +8,12 @@ stages:
     port: 2
     service: "Service 2"
     method: "Method 2"
+    one-shot: False
   - name: "Stage 3"
     host: Host3
     port: 3
     service: "Service 3"
+    one-shot: True
   - name: "Stage 4"
     host: Host4
     port: 4

@@ -77,6 +77,7 @@ public class YamlMergeArchitectureTest {
         assertTrue(stage.getServiceName().isEmpty());
         assertTrue(stage.getMethodName().isPresent());
         assertEquals("Method 1", stage.getMethodName().get());
+        assertTrue(stage.isOneShot());
 
         Set<StageInformation> succStages = graph.successors(stage);
         Set<StageInformation> predStages = graph.predecessors(stage);
@@ -96,6 +97,7 @@ public class YamlMergeArchitectureTest {
         assertTrue(stage.getServiceName().isEmpty());
         assertTrue(stage.getMethodName().isPresent());
         assertEquals("Method 2", stage.getMethodName().get());
+        assertFalse(stage.isOneShot());
 
         Set<StageInformation> succStages = graph.successors(stage);
         Set<StageInformation> predStages = graph.predecessors(stage);
@@ -115,6 +117,7 @@ public class YamlMergeArchitectureTest {
         assertEquals(3, stage.getServicePort());
         assertTrue(stage.getServiceName().isEmpty());
         assertTrue(stage.getMethodName().isEmpty());
+        assertFalse(stage.isOneShot());
 
         Set<StageInformation> succStages = graph.successors(stage);
         Set<StageInformation> predStages = graph.predecessors(stage);
@@ -133,6 +136,7 @@ public class YamlMergeArchitectureTest {
         assertEquals(4, stage.getServicePort());
         assertTrue(stage.getServiceName().isEmpty());
         assertTrue(stage.getMethodName().isEmpty());
+        assertFalse(stage.isOneShot());
 
         Set<StageInformation> succStages = graph.successors(stage);
         Set<StageInformation> predStages = graph.predecessors(stage);

@@ -1,5 +1,6 @@
 package pipeline.orchestrator.architecture.parsing;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import pipeline.orchestrator.verification.annotations.Verifiable;
 import pipeline.orchestrator.verification.annotations.VerifyNotNull;
 import pipeline.orchestrator.verification.annotations.VerifyPositive;
@@ -27,6 +28,11 @@ public class StageInformationDto {
 
     // Name of the grpc method to invoke
     private String method;
+
+    // Flag to specify if the stage should
+    // execute only once
+    @JsonAlias("one-shot")
+    private boolean oneShot;
 
     public String getName() {
         return name;
@@ -68,6 +74,14 @@ public class StageInformationDto {
         this.method = method;
     }
 
+    public boolean isOneShot() {
+        return oneShot;
+    }
+
+    public void setOneShot(boolean oneShot) {
+        this.oneShot = oneShot;
+    }
+
     @Override
     public String toString() {
         return "StageInformationDto{" +
@@ -75,7 +89,8 @@ public class StageInformationDto {
                 ", host='" + host + '\'' +
                 ", port=" + port +
                 ", service='" + service + '\'' +
-                ", method=" + method +
+                ", method='" + method + '\'' +
+                ", oneShot=" + oneShot +
                 '}';
     }
 }

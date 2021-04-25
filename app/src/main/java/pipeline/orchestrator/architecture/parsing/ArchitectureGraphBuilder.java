@@ -40,6 +40,7 @@ public class ArchitectureGraphBuilder {
                 .setServicePort(dto.getPort())
                 .setServiceName(dto.getService())
                 .setMethodName(dto.getMethod())
+                .setOneShot(dto.isOneShot())
                 .build();
     }
 
