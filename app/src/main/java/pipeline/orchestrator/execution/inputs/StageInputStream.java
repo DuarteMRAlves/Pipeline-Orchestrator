@@ -22,7 +22,13 @@ public interface StageInputStream extends Supplier<ComputationState> {
             case 1:
                 return new SingleInputStream(inputs.values().iterator().next());
             default:
-                return new MultipleInputStream(finalMessageDescriptor, inputs);
+                if (CollectorInputStream.canBuildFrom(inputs)) {
+                    return new CollectorInputStream(inputs);
+                } else {
+                    return new MultipleInputStream(
+                            finalMessageDescriptor,
+                            inputs);
+                }
         }
     }
 

@@ -1,5 +1,7 @@
 package pipeline.orchestrator.execution;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Predicate;
@@ -10,14 +12,24 @@ import java.util.function.Predicate;
 public class Link {
 
     private static final int MAX_QUEUE_SIZE = 1;
+    private final List<LinkListener> listeners = new ArrayList<>();
 
-    private final BlockingQueue<ComputationState> dataQueue = new ArrayBlockingQueue<>(MAX_QUEUE_SIZE);
+    private final BlockingQueue<ComputationState> dataQueue
+            = new ArrayBlockingQueue<>(MAX_QUEUE_SIZE);
 
-    public void put(ComputationState dynamicMessage) throws InterruptedException {
+    public void registerListener(LinkListener listener) {
+        synchronized (dataQueue) {
+            listeners.add(listener);
+        }
+    }
+
+    public void put(ComputationState dynamicMessage)
+            throws InterruptedException {
         synchronized (dataQueue) {
             if (dataQueue.size() == MAX_QUEUE_SIZE)
                 dataQueue.take();
             dataQueue.put(dynamicMessage);
+            listeners.forEach(l -> l.onNewObject(this));
         }
     }
 
