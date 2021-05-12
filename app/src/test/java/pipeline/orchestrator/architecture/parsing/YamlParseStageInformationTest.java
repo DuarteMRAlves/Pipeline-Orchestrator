@@ -24,13 +24,14 @@ public class YamlParseStageInformationTest {
     private static final ObjectMapper MAPPER = new ObjectMapper(new YAMLFactory());
 
     @Test
-    public void allFieldsTest() throws Exception {
+    public void allFieldsTestOneShot() throws Exception {
         String content =
                 "name: \"" + NAME + "\"\n" +
-                "host: " + HOST + "\n" +
-                "port: " + PORT + "\n" +
-                "service: " + SERVICE_NAME + "\n" +
-                "method: " + METHOD_NAME + "\n";
+                        "host: " + HOST + "\n" +
+                        "port: " + PORT + "\n" +
+                        "service: " + SERVICE_NAME + "\n" +
+                        "method: " + METHOD_NAME + "\n" +
+                        "one-shot: True";
 
         StageInformationDto stageInformation = MAPPER.readValue(
                 content,
@@ -43,6 +44,31 @@ public class YamlParseStageInformationTest {
         assertEquals(PORT, stageInformation.getPort());
         assertEquals(SERVICE_NAME, stageInformation.getService());
         assertEquals(METHOD_NAME, stageInformation.getMethod());
+        assertTrue(stageInformation.isOneShot());
+    }
+
+    @Test
+    public void allFieldsTestNotOneShot() throws Exception {
+        String content =
+                "name: \"" + NAME + "\"\n" +
+                        "host: " + HOST + "\n" +
+                        "port: " + PORT + "\n" +
+                        "service: " + SERVICE_NAME + "\n" +
+                        "method: " + METHOD_NAME + "\n" +
+                        "one-shot: False";
+
+        StageInformationDto stageInformation = MAPPER.readValue(
+                content,
+                StageInformationDto.class);
+        // Nothing should happen
+        Verifications.verify(stageInformation);
+
+        assertEquals(NAME, stageInformation.getName());
+        assertEquals(HOST, stageInformation.getHost());
+        assertEquals(PORT, stageInformation.getPort());
+        assertEquals(SERVICE_NAME, stageInformation.getService());
+        assertEquals(METHOD_NAME, stageInformation.getMethod());
+        assertFalse(stageInformation.isOneShot());
     }
 
     @Test
@@ -63,6 +89,7 @@ public class YamlParseStageInformationTest {
         assertEquals(PORT, stageInformation.getPort());
         assertNull(stageInformation.getService());
         assertNull(stageInformation.getMethod());
+        assertFalse(stageInformation.isOneShot());
     }
 
     @Test

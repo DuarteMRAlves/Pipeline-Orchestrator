@@ -15,14 +15,17 @@ public interface StageInputStream extends Supplier<ComputationState> {
             Descriptor finalMessageDescriptor,
             ImmutableSetMultimap<String, Link> inputs) {
 
-        switch (inputs.size()) {
-            case 0:
-                // No inputs, source node
-                return new SourceInputStream(finalMessageDescriptor);
-            case 1:
-                return new SingleInputStream(inputs.values().iterator().next());
-            default:
-                return new MultipleInputStream(finalMessageDescriptor, inputs);
+        if (SourceInputStream.canBuildFrom(inputs)) {
+            // No inputs, source node
+            return new SourceInputStream(finalMessageDescriptor);
+        } else if (SingleInputStream.canBuildFrom(inputs)) {
+            return new SingleInputStream(inputs.values().iterator().next());
+        } else if (CollectorInputStream.canBuildFrom(inputs)) {
+            return new CollectorInputStream(inputs);
+        } else if (MultipleInputStream.canBuildFrom(inputs)) {
+            return new MultipleInputStream(finalMessageDescriptor, inputs);
+        } else {
+            throw new IllegalArgumentException();
         }
     }
 

@@ -1,6 +1,7 @@
 package pipeline.orchestrator.execution.inputs;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
@@ -21,7 +22,8 @@ public class MultipleInputStream implements StageInputStream {
     private int currentId = 0;
 
     // Map with most recent states for all inputs
-    private final Map<String, ComputationState> mostRecentStates = new HashMap<>();
+    private final Map<String, ComputationState> mostRecentStates =
+            new HashMap<>();
 
     MultipleInputStream(
             Descriptors.Descriptor descriptor,
@@ -30,6 +32,14 @@ public class MultipleInputStream implements StageInputStream {
         merger = DynamicMessageMerger.newBuilder()
                 .forDescriptor(descriptor)
                 .build();
+    }
+
+    static boolean canBuildFrom(ImmutableSetMultimap<String, Link> inputs) {
+        // Must have all keys not empty and one value per key
+        ImmutableSet<String> keys = inputs.keySet();
+        return !keys.isEmpty()
+                && !keys.contains("")
+                && inputs.entries().size() == keys.size();
     }
 
     @Override

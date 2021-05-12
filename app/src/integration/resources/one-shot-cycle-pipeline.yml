@@ -1,0 +1,25 @@
+stages:
+  # One shot start service with initial message
+  - name: "Source"
+    host: localhost
+    port: 50051
+    one-shot: True
+  - name: "Cycle1"
+    host: localhost
+    port: 50052
+  - name: "Cycle2"
+    host: localhost
+    port: 50053
+links:
+  - source:
+      stage: "Source"
+    target:
+      stage: "Cycle1"
+  - source:
+      stage: "Cycle1"
+    target:
+      stage: "Cycle2"
+  - source:
+      stage: "Cycle2"
+    target:
+      stage: "Cycle1"

@@ -44,7 +44,7 @@ public class StageInformation {
         return Optional.ofNullable(methodName);
     }
 
-    public boolean getOneShot() {
+    public boolean isOneShot() {
         return oneShot;
     }
 

@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "pipeline.orchestrator.grpc.services";
+
+import "google/protobuf/empty.proto";
+import "pipeline/orchestrator/grpc/messages/data.proto";
+
+service IncrementService {
+    rpc Increment (Data) returns (Data);
+}

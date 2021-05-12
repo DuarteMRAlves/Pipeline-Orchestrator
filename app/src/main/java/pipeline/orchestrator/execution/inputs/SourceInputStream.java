@@ -1,8 +1,10 @@
 package pipeline.orchestrator.execution.inputs;
 
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import pipeline.orchestrator.execution.ComputationState;
+import pipeline.orchestrator.execution.Link;
 
 public class SourceInputStream implements StageInputStream {
 
@@ -11,6 +13,10 @@ public class SourceInputStream implements StageInputStream {
 
     SourceInputStream(Descriptors.Descriptor descriptor) {
         this.descriptor = descriptor;
+    }
+
+    static boolean canBuildFrom(ImmutableSetMultimap<String, Link> inputs) {
+        return inputs.isEmpty();
     }
 
     @Override

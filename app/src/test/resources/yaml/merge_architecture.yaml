@@ -3,6 +3,7 @@ stages:
     host: Host1
     port: 1
     method: "Method 1"
+    one-shot: True
   - name: "Stage 2"
     host: Host2
     port: 2
@@ -10,6 +11,7 @@ stages:
   - name: "Stage 3"
     host: Host3
     port: 3
+    one-shot: False
   - name: "Stage 4"
     host: Host4
     port: 4

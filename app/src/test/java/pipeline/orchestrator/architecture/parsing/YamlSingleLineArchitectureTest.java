@@ -76,6 +76,7 @@ public class YamlSingleLineArchitectureTest {
         assertEquals("Service 1", stage.getServiceName().get());
         assertTrue(stage.getMethodName().isPresent());
         assertEquals("Method 1", stage.getMethodName().get());
+        assertFalse(stage.isOneShot());
 
         Set<StageInformation> succStages = graph.successors(stage);
         Set<StageInformation> predStages = graph.predecessors(stage);
@@ -95,6 +96,7 @@ public class YamlSingleLineArchitectureTest {
         assertTrue(stage.getServiceName().isEmpty());
         assertTrue(stage.getMethodName().isPresent());
         assertEquals("Method 2", stage.getMethodName().get());
+        assertFalse(stage.isOneShot());
 
         Set<StageInformation> succStages = graph.successors(stage);
         Set<StageInformation> predStages = graph.predecessors(stage);
@@ -114,6 +116,7 @@ public class YamlSingleLineArchitectureTest {
         assertEquals(3, stage.getServicePort());
         assertTrue(stage.getServiceName().isEmpty());
         assertTrue(stage.getMethodName().isEmpty());
+        assertFalse(stage.isOneShot());
 
         Set<StageInformation> succStages = graph.successors(stage);
         Set<StageInformation> predStages = graph.predecessors(stage);
@@ -134,6 +137,7 @@ public class YamlSingleLineArchitectureTest {
         assertTrue(stage.getServiceName().isPresent());
         assertEquals("Service 4", stage.getServiceName().get());
         assertTrue(stage.getMethodName().isEmpty());
+        assertFalse(stage.isOneShot());
 
         Set<StageInformation> succStages = graph.successors(stage);
         Set<StageInformation> predStages = graph.predecessors(stage);

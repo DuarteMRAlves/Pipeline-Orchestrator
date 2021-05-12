@@ -77,6 +77,7 @@ public class YamlSplitArchitectureTest {
         assertTrue(stage.getServiceName().isEmpty());
         assertTrue(stage.getMethodName().isPresent());
         assertEquals("Method 1", stage.getMethodName().get());
+        assertFalse(stage.isOneShot());
 
         Set<StageInformation> succStages = graph.successors(stage);
         Set<StageInformation> predStages = graph.predecessors(stage);
@@ -97,6 +98,7 @@ public class YamlSplitArchitectureTest {
         assertEquals("Service 2", stage.getServiceName().get());
         assertTrue(stage.getMethodName().isPresent());
         assertEquals("Method 2", stage.getMethodName().get());
+        assertFalse(stage.isOneShot());
 
         Set<StageInformation> succStages = graph.successors(stage);
         Set<StageInformation> predStages = graph.predecessors(stage);
@@ -120,6 +122,7 @@ public class YamlSplitArchitectureTest {
         assertTrue(stage.getServiceName().isPresent());
         assertEquals("Service 3", stage.getServiceName().get());
         assertTrue(stage.getMethodName().isEmpty());
+        assertTrue(stage.isOneShot());
 
         Set<StageInformation> succStages = graph.successors(stage);
         Set<StageInformation> predStages = graph.predecessors(stage);
@@ -138,6 +141,7 @@ public class YamlSplitArchitectureTest {
         assertEquals(4, stage.getServicePort());
         assertTrue(stage.getServiceName().isEmpty());
         assertTrue(stage.getMethodName().isEmpty());
+        assertFalse(stage.isOneShot());
 
         Set<StageInformation> succStages = graph.successors(stage);
         Set<StageInformation> predStages = graph.predecessors(stage);
