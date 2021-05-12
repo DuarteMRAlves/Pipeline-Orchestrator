@@ -154,6 +154,18 @@ task buildDependencies(type: Copy) {
     into 'build/libs'
 }
 
+distTar {
+    dependsOn 'buildDependencies'
+}
+
+distZip {
+    dependsOn 'buildDependencies'
+}
+
+startScripts {
+    dependsOn 'buildDependencies'
+}
+
 abstract class DockerTask extends Exec {
 
     private String tag = 'latest'

@@ -33,12 +33,10 @@ public class CollectorInputStream
         return false;
     }
 
-    static boolean canBuildFrom(
-            ImmutableSetMultimap<String, Link> outputs) {
-
-        // Only contains empty key
-        ImmutableSet<String> keySet = outputs.keySet();
-        return keySet.size() == 1 && keySet.contains("");
+    static boolean canBuildFrom(ImmutableSetMultimap<String, Link> inputs) {
+        // Only contains empty key but has multiple links
+        ImmutableSet<String> keySet = inputs.keySet();
+        return inputs.size() > 1  && keySet.size() == 1 && keySet.contains("");
     }
 
     @Override

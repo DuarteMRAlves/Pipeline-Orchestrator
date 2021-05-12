@@ -1,5 +1,6 @@
 package pipeline.orchestrator.execution.inputs;
 
+import com.google.common.collect.ImmutableSetMultimap;
 import pipeline.orchestrator.execution.ComputationState;
 import pipeline.orchestrator.execution.Link;
 
@@ -9,6 +10,11 @@ public class SingleInputStream implements StageInputStream {
 
     SingleInputStream(Link inputLink) {
         this.inputLink = inputLink;
+    }
+
+    static boolean canBuildFrom(ImmutableSetMultimap<String, Link> inputs) {
+        // Single output with no specific field
+        return inputs.size() == 1 && inputs.keys().contains("");
     }
 
     @Override
