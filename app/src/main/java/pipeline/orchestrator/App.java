@@ -3,17 +3,18 @@ package pipeline.orchestrator;
 import com.google.common.graph.ValueGraph;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import pipeline.orchestrator.architecture.parsing.ArchitectureParser;
 import pipeline.orchestrator.architecture.LinkInformation;
 import pipeline.orchestrator.architecture.StageInformation;
+import pipeline.orchestrator.architecture.parsing.ArchitectureParser;
 import pipeline.orchestrator.configuration.Configuration;
 import pipeline.orchestrator.configuration.ConfigurationManager;
 import pipeline.orchestrator.execution.ExecutionOrchestrator;
 import pipeline.orchestrator.verification.errors.ErrorReport;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 public class App {
 
@@ -38,7 +39,7 @@ public class App {
             result = ArchitectureParser.parseYaml(
                     configuration.getConfigFile());
         } catch (IOException exception) {
-            handleIOException(configuration, exception);
+            handleIOExceptionAtParseConfiguration(configuration, exception);
             return;
         }
         ErrorReport report = result.getReport();
@@ -49,6 +50,17 @@ public class App {
         }
         ValueGraph<StageInformation, LinkInformation> architecture =
                 result.getArchitecture();
+
+        try {
+            waitForStages(architecture.nodes());
+        } catch (IOException exception) {
+            LOGGER.error("Error while waiting for stages to start", exception);
+            return;
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            return;
+        }
+
         orchestrator = new ExecutionOrchestrator(architecture);
         orchestrator.run();
     }
@@ -59,12 +71,63 @@ public class App {
         }
     }
 
-    private void handleIOException(Configuration configuration, IOException exception) {
+    private void handleIOExceptionAtParseConfiguration(
+            Configuration configuration,
+            IOException exception
+    ) {
         if (exception instanceof FileNotFoundException) {
             LOGGER.error("File not found: '{}'", configuration.getConfigFile());
         }
         else {
             LOGGER.error("Unknown IOException when parsing pipeline architecture", exception);
+        }
+    }
+
+    private void waitForStages(
+            Iterable<StageInformation> stages
+    ) throws IOException, InterruptedException {
+        LOGGER.debug("Started waiting for stages");
+        for (StageInformation stage : stages) {
+            waitForStage(stage);
+        }
+        LOGGER.debug("Finished waiting for stages");
+    }
+
+    private void waitForStage(
+            StageInformation stage
+    ) throws IOException, InterruptedException {
+        String target = stage.getServiceHost() + ":" + stage.getServicePort();
+        LOGGER.info("Waiting for stage '{}' at '{}'.", stage.getName(), target);
+        Process process = new ProcessBuilder()
+                .command("./bin/wait-for-it.sh", "-t", "0", target)
+                .start();
+
+        Executors.newSingleThreadExecutor().submit(
+                new StreamGobbler(process.getInputStream(), LOGGER::info)
+        );
+        Executors.newSingleThreadExecutor().submit(
+                new StreamGobbler(process.getErrorStream(), LOGGER::info)
+        );
+
+        int status = process.waitFor();
+        if (status != 0) {
+            LOGGER.info("Status is {}", status);
+        }
+    }
+
+    private static class StreamGobbler implements Runnable {
+        private InputStream inputStream;
+        private Consumer<String> consumer;
+
+        public StreamGobbler(InputStream inputStream, Consumer<String> consumer) {
+            this.inputStream = inputStream;
+            this.consumer = consumer;
+        }
+
+        @Override
+        public void run() {
+            new BufferedReader(new InputStreamReader(inputStream)).lines()
+                    .forEach(consumer);
         }
     }
 }
