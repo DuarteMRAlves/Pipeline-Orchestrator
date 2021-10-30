@@ -8,7 +8,7 @@ import pipeline.orchestrator.architecture.StageInformation;
 import pipeline.orchestrator.architecture.parsing.ArchitectureParser;
 import pipeline.orchestrator.configuration.Configuration;
 import pipeline.orchestrator.configuration.ConfigurationManager;
-import pipeline.orchestrator.execution.ExecutionOrchestrator;
+import pipeline.orchestrator.control.PipelineController;
 import pipeline.orchestrator.verification.errors.ErrorReport;
 
 import java.io.*;
@@ -20,7 +20,8 @@ public class App {
 
     private static final Logger LOGGER = LogManager.getLogger(App.class);
 
-    private ExecutionOrchestrator orchestrator = null;
+    //private ExecutionOrchestrator orchestrator = null;
+    private final PipelineController controller = new PipelineController();
 
     public static void main(String[] args) {
         new App().run(args);
@@ -61,14 +62,17 @@ public class App {
             return;
         }
 
-        orchestrator = new ExecutionOrchestrator(architecture);
-        orchestrator.run();
+        controller.updateGraph(architecture);
+        controller.start();
+        //orchestrator = new ExecutionOrchestrator(architecture);
+        //orchestrator.run();
     }
 
     public void finish() {
-        if (orchestrator != null) {
-            orchestrator.finish();
-        }
+        controller.finish();
+//        if (orchestrator != null) {
+//            orchestrator.finish();
+//        }
     }
 
     private void handleIOExceptionAtParseConfiguration(

@@ -25,7 +25,7 @@ public class WaitForStagesIT extends BasePipelineIT {
     private static final int SINK_PORT = 50052;
 
     @Test
-    public void testLinearPipeline() throws Exception {
+    public void testWaitForStages() throws Exception {
         List<Data> sinkReceived = new ArrayList<>();
         CountDownLatch countDownLatch = new CountDownLatch(NUM_SERVICES);
 

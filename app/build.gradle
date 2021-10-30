@@ -168,7 +168,7 @@ startScripts {
 
 abstract class DockerTask extends Exec {
 
-    private String tag = 'latest'
+    private String tag = 'dev'
 
     DockerTask() {
         commandLine 'docker', 'build', '-t', 'sipgisr/grpc-orchestrator:' + tag, '.'
