@@ -9,8 +9,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import pipeline.orchestrator.architecture.LinkInformation;
 import pipeline.orchestrator.architecture.StageInformation;
-import pipeline.orchestrator.execution.stages.AbstractPipelineStage;
-import pipeline.orchestrator.execution.stages.PipelineStages;
+import pipeline.orchestrator.execution.stages.ExecutionStage;
+import pipeline.orchestrator.execution.stages.ExecutionStages;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -18,25 +18,25 @@ import java.util.Set;
 /**
  * Orchestrator class responsible for the entire execution of the pipeline
  */
-public class ExecutionOrchestrator implements Runnable {
+public class Execution implements Runnable {
 
-    private static final Logger LOGGER = LogManager.getLogger(ExecutionOrchestrator.class);
+    private static final Logger LOGGER = LogManager.getLogger(Execution.class);
 
     private boolean running = false;
-    private final ImmutableMap<String, AbstractPipelineStage> executionStages;
+    private final ImmutableMap<String, ExecutionStage> executionStages;
 
-    public ExecutionOrchestrator(
+    public Execution(
             ValueGraph<StageInformation, LinkInformation> architecture) {
 
         Preconditions.checkNotNull(architecture);
 
         // Create pipeline stages
-        Iterator<AbstractPipelineStage> stages = architecture.nodes().stream()
-                .map(PipelineStages::buildStage)
+        Iterator<ExecutionStage> stages = architecture.nodes().stream()
+                .map(ExecutionStages::buildStage)
                 .iterator();
         this.executionStages = Maps.uniqueIndex(
                 stages,
-                AbstractPipelineStage::getName);
+                ExecutionStage::getName);
 
         // Create links
         Set<EndpointPair<StageInformation>> endpoints = architecture.edges();
@@ -45,10 +45,10 @@ public class ExecutionOrchestrator implements Runnable {
             LinkInformation linkInformation = architecture.edgeValue(endpoint)
                     .orElseThrow(IllegalArgumentException::new);
 
-            AbstractPipelineStage sourceStage = executionStages.get(endpoint.source().getName());
-            AbstractPipelineStage targetStage = executionStages.get(endpoint.target().getName());
+            ExecutionStage sourceStage = executionStages.get(endpoint.source().getName());
+            ExecutionStage targetStage = executionStages.get(endpoint.target().getName());
 
-            PipelineStages.linkStages(
+            ExecutionStages.linkStages(
                     sourceStage,
                     targetStage,
                     linkInformation);
@@ -58,7 +58,7 @@ public class ExecutionOrchestrator implements Runnable {
     @Override
     public void run() {
         LOGGER.info("Starting Pipeline Execution");
-        new StagesMonitor(executionStages);
+        new ExecutionWatcher(executionStages);
         executionStages.values().forEach(
                 pipelineStage -> new Thread(pipelineStage).start());
         setRunning(true);
@@ -66,7 +66,7 @@ public class ExecutionOrchestrator implements Runnable {
 
     public void finish() {
         if (isRunning()) {
-            executionStages.values().forEach(AbstractPipelineStage::finish);
+            executionStages.values().forEach(ExecutionStage::finish);
             setRunning(false);
         }
     }

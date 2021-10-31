@@ -5,42 +5,37 @@ import com.google.common.eventbus.EventBus;
 import com.google.protobuf.DynamicMessage;
 import io.grpc.Channel;
 import io.grpc.StatusRuntimeException;
-import io.grpc.stub.StreamObserver;
 import pipeline.orchestrator.execution.ComputationState;
 import pipeline.orchestrator.execution.inputs.StageInputStream;
 import pipeline.orchestrator.execution.outputs.StageOutputStream;
 import pipeline.orchestrator.execution.stages.events.UnavailableServiceEvent;
-import pipeline.orchestrator.grpc.methods.FullMethodDescription;
 import pipeline.orchestrator.grpc.utils.StatusRuntimeExceptions;
-import pipeline.orchestrator.grpc.methods.AsyncServerStreamingMethodInvoker;
-
-import java.util.concurrent.CountDownLatch;
+import pipeline.orchestrator.grpc.methods.FullMethodDescription;
+import pipeline.orchestrator.grpc.methods.UnaryServiceMethodInvoker;
 
 /**
- * Stage that executes a Server Streaming Grpc Method
- * This stage can only be in the beginning of the pipeline
- * since it creates its own ids for the computational states
+ * Pipeline stage that executes an Unary Grpc Method
+ * exactly once.
+ * This stage can be used for running one time when the
+ * pipeline starts and generating a startup message that
+ * is only required as an initial configuration or setup
+ * for another stage.
  */
-public class ServerStreamingPipelineStage extends AbstractPipelineStage {
+public class OneShotUnaryStage extends ExecutionStage {
 
-    private int currentId = 0;
-
-    private final AsyncServerStreamingMethodInvoker<DynamicMessage, DynamicMessage> invoker;
+    private final UnaryServiceMethodInvoker<DynamicMessage, DynamicMessage> invoker;
 
     private boolean paused = false;
     private boolean finished = false;
 
-    private ServerStreamingPipelineStage(
+    private OneShotUnaryStage(
             String stageName,
             Channel channel,
             FullMethodDescription fullMethodDescription,
             EventBus eventBus) {
 
         super(stageName,  channel, fullMethodDescription, eventBus);
-        invoker = AsyncServerStreamingMethodInvoker.<DynamicMessage, DynamicMessage>newBuilder()
-                .forChannel(getChannel())
-                .forMethod(buildGrpcMethodDescriptor())
-                .build();
+        invoker = buildInvoker();
     }
 
     @Override
@@ -48,54 +43,32 @@ public class ServerStreamingPipelineStage extends AbstractPipelineStage {
         StageInputStream inputStream = getStageInputStream();
         StageOutputStream outputStream = getStageOutputStream();
 
-        getLogger().debug("Stage '{}': Running", getName());
-
-        // Check if the input stream is a source so that it can ignore ids
+        // Check if the input stream is a source.
         Preconditions.checkState(inputStream.isSource());
 
-        // Run forever until finished
-        while (true) {
+        waitPaused();
 
-            waitPaused();
+        // Check if finished while paused
+        if (isFinished()) {
+            return;
+        }
 
-            // Check if finished while paused
-            if (isFinished()) {
-                break;
-            }
+        ComputationState requestState = inputStream.get();
+        try {
+            DynamicMessage response = invoker.call(requestState.getMessage());
+            ComputationState responseState = ComputationState.from(
+                    requestState,
+                    response);
+            outputStream.accept(responseState);
+        } catch (StatusRuntimeException e) {
+            handleStatusRuntimeException(e);
+        }
 
-            ComputationState requestState = inputStream.get();
-            CountDownLatch streamEnd = new CountDownLatch(1);
-
-            invoker.call(requestState.getMessage(), new StreamObserver<>() {
-                @Override
-                public void onNext(DynamicMessage value) {
-                    ComputationState state = ComputationState.from(
-                            currentId++,
-                            value);
-                    outputStream.accept(state);
-                }
-
-                @Override
-                public void onError(Throwable t) {
-                    handleThrowable(t);
-                }
-
-                @Override
-                public void onCompleted() {
-                    streamEnd.countDown();
-                }
-            });
-
-            try {
-                // Wait for the stream to end before starting the next stream
-                streamEnd.await();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-
-            if (Thread.currentThread().isInterrupted()) {
-                pause();
-            }
+        if (Thread.currentThread().isInterrupted()) {
+            pause();
+        }
+        synchronized (this) {
+            finished = true;
         }
         getLogger().info("Stage '{}': Processing finished", getName());
     }
@@ -126,8 +99,6 @@ public class ServerStreamingPipelineStage extends AbstractPipelineStage {
         synchronized (this) {
             // Can only pause if not paused
             if (!finished) {
-                // In this case of the stream it will keep processing the
-                // received objects and storing them if possible
                 paused = true;
             }
             else {
@@ -152,17 +123,16 @@ public class ServerStreamingPipelineStage extends AbstractPipelineStage {
     }
 
     /**
-     * Returns a builder for server streaming pipeline stages
+     * Returns a builder for one shot unary pipeline stages
      * @return the new builder
      */
-    public static StageBuilder<ServerStreamingPipelineStage> newBuilder() {
+    public static ExecutionStageBuilder<OneShotUnaryStage> newBuilder() {
         return new Builder();
     }
 
     private void waitPaused() {
         synchronized (this) {
             while (paused) {
-                getLogger().trace("Stage '{}': Waiting", getName());
                 try {
                     wait();
                 }
@@ -179,34 +149,30 @@ public class ServerStreamingPipelineStage extends AbstractPipelineStage {
         }
     }
 
-    private void handleThrowable(Throwable t) {
-        if (t instanceof StatusRuntimeException) {
-            handleStatusRuntimeException((StatusRuntimeException) t);
-            pause();
-        }
-        else {
-            getLogger().error("Unknown Throwable when executing call", t);
-            System.exit(1);
-        }
-    }
-
     private void handleStatusRuntimeException(StatusRuntimeException e) {
         if (StatusRuntimeExceptions.isUnavailable(e)) {
             postEvent(new UnavailableServiceEvent(getName()));
+            pause();
         }
         else {
-            getLogger().error(
-                    "Unknown StatusRuntimeException when executing call",
-                    e);
+            getLogger().error("Unknown StatusRuntimeException when executing call", e);
             System.exit(1);
         }
     }
 
-    static final class Builder extends StageBuilder<ServerStreamingPipelineStage> {
+    private UnaryServiceMethodInvoker<DynamicMessage, DynamicMessage> buildInvoker() {
+        return UnaryServiceMethodInvoker.<DynamicMessage, DynamicMessage>newBuilder()
+                .forChannel(getChannel())
+                .forMethod(buildGrpcMethodDescriptor())
+                .build();
+    }
+
+    static final class Builder extends
+            ExecutionStageBuilder<OneShotUnaryStage> {
 
         @Override
-        public ServerStreamingPipelineStage build() {
-            return new ServerStreamingPipelineStage(
+        public OneShotUnaryStage build() {
+            return new OneShotUnaryStage(
                     getName(),
                     getChannel(),
                     getDescription(),

@@ -5,22 +5,23 @@ import com.google.common.eventbus.Subscribe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import pipeline.orchestrator.execution.stages.events.UnavailableServiceEvent;
-import pipeline.orchestrator.execution.stages.AbstractPipelineStage;
-import pipeline.orchestrator.execution.stages.PipelineStages;
+import pipeline.orchestrator.execution.stages.ExecutionStage;
+import pipeline.orchestrator.execution.stages.ExecutionStages;
 
 /**
  * Class to monitor the execution of the stages
  */
-public class StagesMonitor {
+public class ExecutionWatcher {
 
-    private static final Logger LOGGER = LogManager.getLogger(StagesMonitor.class);
+    private static final Logger LOGGER =
+            LogManager.getLogger(ExecutionWatcher.class);
 
-    private final ImmutableMap<String, AbstractPipelineStage> stages;
+    private final ImmutableMap<String, ExecutionStage> stages;
 
-    public StagesMonitor(
-            ImmutableMap<String, AbstractPipelineStage> stages) {
+    public ExecutionWatcher(
+            ImmutableMap<String, ExecutionStage> stages) {
         this.stages = stages;
-        PipelineStages.subscribeToStagesEvents(this);
+        ExecutionStages.subscribeToStagesEvents(this);
     }
 
     @Subscribe
@@ -30,7 +31,7 @@ public class StagesMonitor {
                 event.getStageName());
         // Pause Stages
         LOGGER.info("Pausing stages");
-        stages.values().forEach(AbstractPipelineStage::pause);
+        stages.values().forEach(ExecutionStage::pause);
         try {
             Thread.sleep(10000);
         }
@@ -40,6 +41,6 @@ public class StagesMonitor {
         }
         // Resume Stages
         LOGGER.info("Resuming stages");
-        stages.values().forEach(AbstractPipelineStage::resume);
+        stages.values().forEach(ExecutionStage::resume);
     }
 }

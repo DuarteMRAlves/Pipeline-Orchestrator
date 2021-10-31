@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.graph.ValueGraph;
 import pipeline.orchestrator.architecture.LinkInformation;
 import pipeline.orchestrator.architecture.StageInformation;
-import pipeline.orchestrator.execution.ExecutionOrchestrator;
+import pipeline.orchestrator.execution.Execution;
 
 /**
  * Main class to control functioning of the pipeline
@@ -12,7 +12,7 @@ import pipeline.orchestrator.execution.ExecutionOrchestrator;
 public class PipelineController {
 
     private ValueGraph<StageInformation, LinkInformation> architecture;
-    private ExecutionOrchestrator orchestrator;
+    private Execution orchestrator;
 
     public synchronized void updateGraph(
             ValueGraph<StageInformation, LinkInformation> architecture
@@ -23,7 +23,7 @@ public class PipelineController {
 
     public synchronized void start() {
         if (orchestrator != null) orchestrator.finish();
-        orchestrator = new ExecutionOrchestrator(architecture);
+        orchestrator = new Execution(architecture);
         orchestrator.run();
     }
 

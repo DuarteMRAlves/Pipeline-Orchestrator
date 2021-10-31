@@ -9,7 +9,7 @@ import pipeline.orchestrator.grpc.methods.FullMethodDescription;
  * Defines setters and getters for common attributes for
  * all stages
  */
-public abstract class StageBuilder<T extends AbstractPipelineStage> {
+public abstract class ExecutionStageBuilder<T extends ExecutionStage> {
 
     // Name of the stage
     private String name;
@@ -25,7 +25,7 @@ public abstract class StageBuilder<T extends AbstractPipelineStage> {
     // publishing events
     private EventBus eventBus;
 
-    public StageBuilder<T> setName(String name) {
+    public ExecutionStageBuilder<T> setName(String name) {
         this.name = name;
         return this;
     }
@@ -34,7 +34,7 @@ public abstract class StageBuilder<T extends AbstractPipelineStage> {
         return name;
     }
 
-    public StageBuilder<T> setChannel(Channel channel) {
+    public ExecutionStageBuilder<T> setChannel(Channel channel) {
         this.channel = channel;
         return this;
     }
@@ -43,7 +43,7 @@ public abstract class StageBuilder<T extends AbstractPipelineStage> {
         return channel;
     }
 
-    public StageBuilder<T> setFullMethodDescription(
+    public ExecutionStageBuilder<T> setFullMethodDescription(
             FullMethodDescription description) {
 
         this.description = description;
@@ -54,7 +54,7 @@ public abstract class StageBuilder<T extends AbstractPipelineStage> {
         return description;
     }
 
-    public StageBuilder<T> setEventBus(EventBus eventBus) {
+    public ExecutionStageBuilder<T> setEventBus(EventBus eventBus) {
         this.eventBus = eventBus;
         return this;
     }

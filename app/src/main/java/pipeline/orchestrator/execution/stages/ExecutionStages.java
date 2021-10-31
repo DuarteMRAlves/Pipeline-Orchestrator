@@ -23,15 +23,15 @@ import java.util.concurrent.Executors;
  * like creation and binding of inputs
  * Acts as an API for creating and operating with PipelineStages
  */
-public class PipelineStages {
+public class ExecutionStages {
 
-    private static final Logger LOGGER = LogManager.getLogger(PipelineStages.class);
+    private static final Logger LOGGER = LogManager.getLogger(ExecutionStages.class);
 
     // Event bus for the stages to publish their error events
     // Only single thread executor as not a lot of processing
     private static final EventBus EVENT_BUS = new AsyncEventBus(Executors.newSingleThreadExecutor());
 
-    private PipelineStages() {}
+    private ExecutionStages() {}
 
     /**
      * Builds a new stage that is linked to the given stage
@@ -40,7 +40,7 @@ public class PipelineStages {
      * @return the pipeline stage that can be executed to execute
      *         requests on the given stage
      */
-    public static AbstractPipelineStage buildStage(StageInformation stageInformation) {
+    public static ExecutionStage buildStage(StageInformation stageInformation) {
         logBuildStage(stageInformation);
         return buildStageFromInformation(stageInformation);
     }
@@ -52,8 +52,8 @@ public class PipelineStages {
      * @param linkInformation information about the messages sent
      */
     public static void linkStages(
-            AbstractPipelineStage source,
-            AbstractPipelineStage target,
+            ExecutionStage source,
+            ExecutionStage target,
             LinkInformation linkInformation) {
 
         logLinkStages(source, target, linkInformation);
@@ -77,7 +77,7 @@ public class PipelineStages {
         EVENT_BUS.register(subscriber);
     }
 
-    private static AbstractPipelineStage buildStageFromInformation(StageInformation stageInformation) {
+    private static ExecutionStage buildStageFromInformation(StageInformation stageInformation) {
 
         Channel channel = ManagedChannelBuilder
                 .forAddress(
@@ -115,13 +115,13 @@ public class PipelineStages {
         }
     }
 
-    private static AbstractPipelineStage getPipelineStage(
+    private static ExecutionStage getPipelineStage(
             StageInformation stageInformation,
             Channel channel,
             FullMethodDescription fullMethodDesc) {
 
         // Builder to use when building the new stage
-        StageBuilder<?> builder = getStageBuilder(
+        ExecutionStageBuilder<?> builder = getStageBuilder(
                 stageInformation,
                 fullMethodDesc.getMethodDescriptor());
 
@@ -133,19 +133,19 @@ public class PipelineStages {
                 .build();
     }
 
-    private static StageBuilder<?> getStageBuilder(
+    private static ExecutionStageBuilder<?> getStageBuilder(
             StageInformation stageInformation,
             Descriptors.MethodDescriptor methodDescriptor) {
 
-        StageBuilder<?> builder;
+        ExecutionStageBuilder<?> builder;
         if (isUnary(methodDescriptor) && isOneShot(stageInformation)) {
-            builder = OneShotUnaryPipelineStage.newBuilder();
+            builder = OneShotUnaryStage.newBuilder();
         }
         else if (isUnary(methodDescriptor) && !isOneShot(stageInformation)) {
-            builder = UnaryPipelineStage.newBuilder();
+            builder = UnaryStage.newBuilder();
         }
         else if (isServerStreaming(methodDescriptor) && !isOneShot(stageInformation)) {
-            builder = ServerStreamingPipelineStage.newBuilder();
+            builder = ServerStreamingStage.newBuilder();
         }
         else {
             throw new UnsupportedOperationException("Unsupported method type");
@@ -181,8 +181,8 @@ public class PipelineStages {
     }
 
     private static void logLinkStages(
-            AbstractPipelineStage source,
-            AbstractPipelineStage target,
+            ExecutionStage source,
+            ExecutionStage target,
             LinkInformation linkInformation) {
 
         if (LOGGER.isTraceEnabled()) {

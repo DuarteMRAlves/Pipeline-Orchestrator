@@ -20,9 +20,9 @@ import pipeline.orchestrator.grpc.methods.MethodDescriptors;
  * Class for an abstract pipeline stage
  * Offers useful methods that stages can use to run
  */
-public abstract class AbstractPipelineStage implements Runnable {
+public abstract class ExecutionStage implements Runnable {
 
-    private final Logger logger = LogManager.getLogger(AbstractPipelineStage.class);
+    private final Logger logger = LogManager.getLogger(ExecutionStage.class);
 
     // Multimaps with this input and output links for the stage
     private final Multimap<String, Link> inputs = HashMultimap.create();
@@ -40,7 +40,7 @@ public abstract class AbstractPipelineStage implements Runnable {
     // running was called and so any configuration commands should fail
     private boolean setupComplete = false;
 
-    protected AbstractPipelineStage(
+    protected ExecutionStage(
             String stageName,
             Channel channel,
             FullMethodDescription fullMethodDescription,
@@ -67,14 +67,14 @@ public abstract class AbstractPipelineStage implements Runnable {
     /**
      * Indicates the the stage should resume its
      * processing after being paused by
-     * {@link AbstractPipelineStage#pause()}.
+     * {@link ExecutionStage#pause()}.
      */
     public abstract void resume();
 
     /**
      * Indicates that the stage should temporarily
      * stop processing messages. The stage can resume
-     * processing messages with {@link AbstractPipelineStage#resume()}
+     * processing messages with {@link ExecutionStage#resume()}
      */
     public abstract void pause();
 
