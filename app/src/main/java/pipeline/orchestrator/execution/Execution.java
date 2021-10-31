@@ -58,10 +58,21 @@ public class Execution implements Runnable {
     @Override
     public void run() {
         LOGGER.info("Starting Pipeline Execution");
-        new ExecutionWatcher(executionStages);
         executionStages.values().forEach(
-                pipelineStage -> new Thread(pipelineStage).start());
+                executionStage -> new Thread(executionStage).start());
         setRunning(true);
+    }
+
+    public void pause() {
+        if (isRunning()) {
+            executionStages.values().forEach(ExecutionStage::pause);
+        }
+    }
+
+    public void resume() {
+        if (isRunning()) {
+            executionStages.values().forEach(ExecutionStage::resume);
+        }
     }
 
     public void finish() {

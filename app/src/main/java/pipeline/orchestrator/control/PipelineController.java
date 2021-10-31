@@ -12,7 +12,7 @@ import pipeline.orchestrator.execution.Execution;
 public class PipelineController {
 
     private ValueGraph<StageInformation, LinkInformation> architecture;
-    private Execution orchestrator;
+    private Execution execution;
 
     public synchronized void updateGraph(
             ValueGraph<StageInformation, LinkInformation> architecture
@@ -22,13 +22,14 @@ public class PipelineController {
     }
 
     public synchronized void start() {
-        if (orchestrator != null) orchestrator.finish();
-        orchestrator = new Execution(architecture);
-        orchestrator.run();
+        if (execution != null) execution.finish();
+        execution = new Execution(architecture);
+        new ExecutionWatcher(execution);
+        execution.run();
     }
 
     public synchronized void finish() {
-        Preconditions.checkState(orchestrator != null);
-        orchestrator.finish();
+        Preconditions.checkState(execution != null);
+        execution.finish();
     }
 }
