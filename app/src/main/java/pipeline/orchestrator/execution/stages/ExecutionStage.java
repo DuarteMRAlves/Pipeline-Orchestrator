@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.eventbus.EventBus;
 import com.google.protobuf.DynamicMessage;
 import io.grpc.Channel;
 import io.grpc.MethodDescriptor;
@@ -34,7 +33,7 @@ public abstract class ExecutionStage implements Runnable {
 
     private final FullMethodDescription fullMethodDescription;
 
-    private final EventBus eventBus;
+    private final StageListener listener;
 
     // Variable to check if a method that implies that the stage is
     // running was called and so any configuration commands should fail
@@ -44,12 +43,12 @@ public abstract class ExecutionStage implements Runnable {
             String stageName,
             Channel channel,
             FullMethodDescription fullMethodDescription,
-            EventBus eventBus) {
-
+            StageListener listener
+    ) {
         this.name = stageName;
         this.channel = channel;
         this.fullMethodDescription = fullMethodDescription;
-        this.eventBus = eventBus;
+        this.listener = listener;
 
         if (logger.isInfoEnabled()) {
             logger.info(
@@ -65,7 +64,7 @@ public abstract class ExecutionStage implements Runnable {
     public final String getName() { return name; }
 
     /**
-     * Indicates the the stage should resume its
+     * Indicates the stage should resume its
      * processing after being paused by
      * {@link ExecutionStage#pause()}.
      */
@@ -145,10 +144,9 @@ public abstract class ExecutionStage implements Runnable {
     /**
      * Method for a stage to post an event in the respective
      * event bus
-     * @param object event to post
      */
-    protected final void postEvent(Object object) {
-        eventBus.post(object);
+    protected final void unavailableStage() {
+        this.listener.onUnavailableStage(this.name);
     }
 
     @Override

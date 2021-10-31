@@ -24,7 +24,7 @@ public class PipelineController {
     public synchronized void start() {
         if (execution != null) execution.finish();
         execution = new Execution(architecture);
-        new ExecutionWatcher(execution);
+        new ControllerExecutionWatcher(execution);
         execution.run();
     }
 

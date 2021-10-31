@@ -1,7 +1,5 @@
 package pipeline.orchestrator.execution.stages;
 
-import com.google.common.eventbus.AsyncEventBus;
-import com.google.common.eventbus.EventBus;
 import com.google.protobuf.Descriptors;
 import io.grpc.Channel;
 import io.grpc.ManagedChannelBuilder;
@@ -16,7 +14,6 @@ import pipeline.orchestrator.reflection.ServerMethodDiscovery;
 import pipeline.orchestrator.reflection.UnableToDiscoverMethodException;
 
 import java.util.Optional;
-import java.util.concurrent.Executors;
 
 /**
  * Class to assist the usage of PipelineStages
@@ -27,22 +24,22 @@ public class ExecutionStages {
 
     private static final Logger LOGGER = LogManager.getLogger(ExecutionStages.class);
 
-    // Event bus for the stages to publish their error events
-    // Only single thread executor as not a lot of processing
-    private static final EventBus EVENT_BUS = new AsyncEventBus(Executors.newSingleThreadExecutor());
-
     private ExecutionStages() {}
 
     /**
      * Builds a new stage that is linked to the given stage
      * @param stageInformation information of the stage that this pipeline
-     *                         stage will linked too
+     *                         stage will link to.
+     * @param listener listener for the stage to call.
      * @return the pipeline stage that can be executed to execute
      *         requests on the given stage
      */
-    public static ExecutionStage buildStage(StageInformation stageInformation) {
+    public static ExecutionStage buildStage(
+            StageInformation stageInformation,
+            StageListener listener
+    ) {
         logBuildStage(stageInformation);
-        return buildStageFromInformation(stageInformation);
+        return buildStageFromInformation(stageInformation, listener);
     }
 
     /**
@@ -65,19 +62,10 @@ public class ExecutionStages {
         target.bindInput(targetFieldName, link);
     }
 
-    /**
-     * Method to register a subscriber to receive error events from
-     * all the stages
-     * @param subscriber subscriber to register
-     */
-    public static void subscribeToStagesEvents(Object subscriber) {
-
-        LOGGER.trace("New Pipeline Stages Events subscriber: {}", subscriber);
-
-        EVENT_BUS.register(subscriber);
-    }
-
-    private static ExecutionStage buildStageFromInformation(StageInformation stageInformation) {
+    private static ExecutionStage buildStageFromInformation(
+            StageInformation stageInformation,
+            StageListener listener
+    ) {
 
         Channel channel = ManagedChannelBuilder
                 .forAddress(
@@ -88,7 +76,7 @@ public class ExecutionStages {
         Optional<FullMethodDescription> fullMethodDesc =
                 getFullMethodDescription(channel, stageInformation);
 
-        return fullMethodDesc.map(desc -> getPipelineStage(stageInformation, channel, desc))
+        return fullMethodDesc.map(desc -> getPipelineStage(stageInformation, channel, desc, listener))
                 .orElseThrow(() -> new IllegalStateException(
                         String.format("Unable to build pipeline stage for %s", channel.authority())));
     }
@@ -118,7 +106,8 @@ public class ExecutionStages {
     private static ExecutionStage getPipelineStage(
             StageInformation stageInformation,
             Channel channel,
-            FullMethodDescription fullMethodDesc) {
+            FullMethodDescription fullMethodDesc,
+            StageListener listener) {
 
         // Builder to use when building the new stage
         ExecutionStageBuilder<?> builder = getStageBuilder(
@@ -129,7 +118,7 @@ public class ExecutionStages {
                 .setName(stageInformation.getName())
                 .setChannel(channel)
                 .setFullMethodDescription(fullMethodDesc)
-                .setEventBus(EVENT_BUS)
+                .setListener(listener)
                 .build();
     }
 

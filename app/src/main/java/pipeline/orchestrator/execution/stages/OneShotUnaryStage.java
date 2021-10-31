@@ -1,17 +1,15 @@
 package pipeline.orchestrator.execution.stages;
 
 import com.google.common.base.Preconditions;
-import com.google.common.eventbus.EventBus;
 import com.google.protobuf.DynamicMessage;
 import io.grpc.Channel;
 import io.grpc.StatusRuntimeException;
 import pipeline.orchestrator.execution.ComputationState;
 import pipeline.orchestrator.execution.inputs.StageInputStream;
 import pipeline.orchestrator.execution.outputs.StageOutputStream;
-import pipeline.orchestrator.execution.stages.events.UnavailableServiceEvent;
-import pipeline.orchestrator.grpc.utils.StatusRuntimeExceptions;
 import pipeline.orchestrator.grpc.methods.FullMethodDescription;
 import pipeline.orchestrator.grpc.methods.UnaryServiceMethodInvoker;
+import pipeline.orchestrator.grpc.utils.StatusRuntimeExceptions;
 
 /**
  * Pipeline stage that executes an Unary Grpc Method
@@ -32,9 +30,9 @@ public class OneShotUnaryStage extends ExecutionStage {
             String stageName,
             Channel channel,
             FullMethodDescription fullMethodDescription,
-            EventBus eventBus) {
+            StageListener listener) {
 
-        super(stageName,  channel, fullMethodDescription, eventBus);
+        super(stageName,  channel, fullMethodDescription, listener);
         invoker = buildInvoker();
     }
 
@@ -151,7 +149,7 @@ public class OneShotUnaryStage extends ExecutionStage {
 
     private void handleStatusRuntimeException(StatusRuntimeException e) {
         if (StatusRuntimeExceptions.isUnavailable(e)) {
-            postEvent(new UnavailableServiceEvent(getName()));
+            unavailableStage();
             pause();
         }
         else {
@@ -176,7 +174,7 @@ public class OneShotUnaryStage extends ExecutionStage {
                     getName(),
                     getChannel(),
                     getDescription(),
-                    getEventBus());
+                    getListener());
         }
     }
 }

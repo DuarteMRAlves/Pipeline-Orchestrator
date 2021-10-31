@@ -1,29 +1,28 @@
 package pipeline.orchestrator.control;
 
-import com.google.common.eventbus.Subscribe;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import pipeline.orchestrator.execution.Execution;
-import pipeline.orchestrator.execution.stages.ExecutionStages;
-import pipeline.orchestrator.execution.stages.events.UnavailableServiceEvent;
+import pipeline.orchestrator.execution.ExecutionWatcher;
+import pipeline.orchestrator.execution.events.UnavailableStageEvent;
 
 /**
  * Class to monitor the execution of the stages
  */
-public class ExecutionWatcher {
+public class ControllerExecutionWatcher implements ExecutionWatcher {
 
     private static final Logger LOGGER =
-            LogManager.getLogger(ExecutionWatcher.class);
+            LogManager.getLogger(ControllerExecutionWatcher.class);
 
     private final Execution execution;
 
-    public ExecutionWatcher(Execution execution) {
+    public ControllerExecutionWatcher(Execution execution) {
         this.execution = execution;
-        ExecutionStages.subscribeToStagesEvents(this);
+        execution.registerWatcher(this);
     }
 
-    @Subscribe
-    public void handleUnavailableService(UnavailableServiceEvent event) {
+    @Override
+    public void onUnavailableStage(UnavailableStageEvent event) {
         LOGGER.warn(
                 "Unavailable Service for Stage '{}'",
                 event.getStageName());

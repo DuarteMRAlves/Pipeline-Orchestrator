@@ -1,12 +1,10 @@
-package pipeline.orchestrator.execution.stages.events;
+package pipeline.orchestrator.execution.events;
 
-public class UnavailableServiceEvent {
+public class UnavailableStageEvent {
 
     private final String stageName;
 
-    public UnavailableServiceEvent(
-            String stageName) {
-
+    public UnavailableStageEvent(String stageName) {
         this.stageName = stageName;
     }
 

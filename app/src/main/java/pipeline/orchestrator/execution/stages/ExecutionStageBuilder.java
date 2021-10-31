@@ -1,6 +1,5 @@
 package pipeline.orchestrator.execution.stages;
 
-import com.google.common.eventbus.EventBus;
 import io.grpc.Channel;
 import pipeline.orchestrator.grpc.methods.FullMethodDescription;
 
@@ -21,9 +20,8 @@ public abstract class ExecutionStageBuilder<T extends ExecutionStage> {
     // that this stage will execute
     private FullMethodDescription description;
 
-    // Event bus for the stage to use when
-    // publishing events
-    private EventBus eventBus;
+    // Listener for the stage
+    private StageListener listener;
 
     public ExecutionStageBuilder<T> setName(String name) {
         this.name = name;
@@ -54,13 +52,13 @@ public abstract class ExecutionStageBuilder<T extends ExecutionStage> {
         return description;
     }
 
-    public ExecutionStageBuilder<T> setEventBus(EventBus eventBus) {
-        this.eventBus = eventBus;
+    public ExecutionStageBuilder<T> setListener(StageListener listener) {
+        this.listener = listener;
         return this;
     }
 
-    protected EventBus getEventBus() {
-        return eventBus;
+    protected StageListener getListener() {
+        return listener;
     }
 
     /**
